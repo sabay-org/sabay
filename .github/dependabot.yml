@@ -1,0 +1,15 @@
+version: 2
+updates:
+  # Configure Dependabot for pipenv
+  - package-ecosystem: "pip"
+    directory: "/" # Change to the subdirectory if your Pipfile is nested
+    schedule:
+      interval: "daily"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    # Grouped updates allow Dependabot to open a single PR for multiple packages
+    groups:
+      django-ecosystem:
+        patterns:
+          - "django*"
+          - "djangorestframework"
