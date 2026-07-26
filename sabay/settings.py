@@ -31,12 +31,18 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    # external apps
+    'daphne'
+    'channels'
+    # default apps
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # project apps
+    'messages'
 ]
 
 MIDDLEWARE = [
@@ -67,6 +73,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'sabay.wsgi.application'
+ASGI_APPLICATION = "sabay.asgi.application"
 
 
 # Database
