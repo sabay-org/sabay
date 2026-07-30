@@ -4,10 +4,12 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-django = "*"
 black = "*"
 channels = "*"
+channels_redis = "*"
 daphne = "*"
+django = "*"
+gunicorn = "*"
 
 [dev-packages]
 

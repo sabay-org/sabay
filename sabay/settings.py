@@ -32,8 +32,8 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     # external apps
-    'daphne'
-    'channels'
+    'daphne',
+    'channels',
     # default apps
     'django.contrib.admin',
     'django.contrib.auth',
@@ -42,7 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # project apps
-    'messages'
+    'chat',
+    'pages'
 ]
 
 MIDDLEWARE = [
@@ -75,6 +76,16 @@ TEMPLATES = [
 WSGI_APPLICATION = 'sabay.wsgi.application'
 ASGI_APPLICATION = "sabay.asgi.application"
 
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            #"hosts": [("127.0.0.1", 6379)],
+            #"hosts": [{"address": "redis://127.0.0.1:6379", "socket_timeout": None}],
+            "hosts": [{"address": "redis://redis:6379", "socket_timeout": None}],
+        },
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
