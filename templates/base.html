@@ -1,0 +1,31 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Sabay{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/simple.min.css' %}">
+    {% block extra_head %}{% endblock %}
+  </head>
+  <body>
+    <header>
+      {% block header %}
+        <nav aria-label="Main navigation">
+          <a href="{% url 'home' %}">Sabay</a>
+        </nav>
+        <h1>{% block page_heading %}Sabay{% endblock %}</h1>
+      {% endblock %}
+    </header>
+
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+      {% block footer %}<p>&copy; {% now "Y" %} Sabay</p>{% endblock %}
+    </footer>
+
+    {% block scripts %}{% endblock %}
+  </body>
+</html>
