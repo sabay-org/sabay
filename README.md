@@ -32,3 +32,14 @@ The `CI` GitHub Actions workflow runs linting and tests whenever a pull request 
 opened, updated, reopened, or marked ready for review. Configure the repository's
 branch rules to require the `CI / Ruff` and `CI / Django tests` status checks before
 merging.
+
+## Git hooks
+
+> [!CAUTION]
+> Always review git hooks.
+
+Enable git hooks for auto-formatting on commit using `Ruff`.
+
+```bash
+git config --local core.hooksPath .githooks
+```

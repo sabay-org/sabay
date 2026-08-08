@@ -1,0 +1,5 @@
+#!/bin/sh
+
+HOOK_DIR="$(git rev-parse --show-toplevel)/.githooks/pre-commit.d"
+
+"$HOOK_DIR/format-all"
