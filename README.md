@@ -16,3 +16,19 @@
   - `pip install pipenv`
 * install project packages
   - `pipenv install`
+
+## Quality checks
+
+Run the same checks used by continuous integration before opening a pull request:
+
+```bash
+ruff check .
+pipenv run python manage.py check
+pipenv run python manage.py makemigrations --check --dry-run
+pipenv run python manage.py test
+```
+
+The `CI` GitHub Actions workflow runs linting and tests whenever a pull request is
+opened, updated, reopened, or marked ready for review. Configure the repository's
+branch rules to require the `CI / Ruff` and `CI / Django tests` status checks before
+merging.

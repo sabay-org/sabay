@@ -1,0 +1,55 @@
+name: Discord PR notification
+
+on:
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  notify:
+    name: Notify Discord
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_TITLE: ${{ github.event.pull_request.title }}
+      PR_URL: ${{ github.event.pull_request.html_url }}
+      REPOSITORY: ${{ github.repository }}
+    steps:
+      - name: Build Discord message
+        run: |
+          jq --null-input \
+            --arg author "$PR_AUTHOR" \
+            --arg number "$PR_NUMBER" \
+            --arg repository "$REPOSITORY" \
+            --arg title "$PR_TITLE" \
+            --arg url "$PR_URL" \
+            '{
+              username: "GitHub",
+              allowed_mentions: {parse: []},
+              embeds: [{
+                title: ("Pull request #" + $number + " opened"),
+                description: $title,
+                url: $url,
+                color: 5814783,
+                fields: [
+                  {name: "Repository", value: $repository, inline: true},
+                  {name: "Author", value: $author, inline: true}
+                ]
+              }]
+            }' > discord-payload.json
+
+      - name: Send Discord notification
+        run: |
+          curl \
+            --fail-with-body \
+            --retry 3 \
+            --retry-all-errors \
+            --header "Content-Type: application/json" \
+            --data-binary @discord-payload.json \
+            "$DISCORD_WEBHOOK_URL"
