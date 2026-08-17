@@ -4,7 +4,6 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-black = "*"
 channels = "*"
 channels_redis = "*"
 daphne = "*"
@@ -12,6 +11,7 @@ django = "*"
 gunicorn = "*"
 
 [dev-packages]
+ruff = "*"
 
 [requires]
 python_version = "3.14"
