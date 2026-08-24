@@ -1,0 +1,110 @@
+:root {
+  --navyblue: #0b1220;
+  --darkblue: #0f1115;
+  --white: #f5f5f5;
+  --lightbrown: #c4a484;
+  --midnightblue: #191970;
+  --lavender: hsl(240, 67%, 94%);
+  --slateblue: #6a5acd;
+  --babypink: #f8d2f9;
+}
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+}
+
+nav {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  background-color: var(--lavender);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 100;
+}
+
+nav .brand {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--black);
+  text-decoration: none;
+}
+
+.nav-links {
+  display: flex;
+  gap: 30px;
+}
+
+nav a {
+  color: var(--black);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+nav a:hover {
+  opacity: 0.6;
+}
+
+main {
+  padding: 90px 20px 20px;
+}
+
+/* details about the bars */
+.message-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr 260px;
+  gap: 20px;
+  height: calc(100vh - 130px);
+}
+.conversation-list,
+.active-thread,
+.profile-detail,
+.suggested-profiles {
+  border: 2px solid black;
+  padding: 16px;
+}
+.sidebar-right {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  height: 100%;
+}
+.profile-detail,
+.suggested-profiles {
+  flex: 1;
+}
+.placeholder-text {
+  font-family: system-ui, sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+/* the aside bar */
+.conversation-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.conversation-item {
+  padding: 10px 8px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+}
+.conversation-item:hover {
+  background-color: var(--lavender);
+}
+.conversation-name {
+  display: block;
+  font-weight: 600;
+}
+.conversation-preview {
+  display: block;
+  font-size: 0.85rem;
+  color: #888;
+}
