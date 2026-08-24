@@ -104,10 +104,10 @@ License & MIT License \\
 \textbf{Team member} & \textbf{Primary responsibilities} \\
 \midrule
 Christopher Kuttruff & Team lead, coordination with sponsor, project planning, DevOps, database schema design, back-end functionality \\
-Ethan Dibble & \TBD{Confirm role(s) and owned deliverables.} \\
-Olga Ishimwe & \TBD{Confirm role(s) and owned deliverables.} \\
-Sefu Alvarez & \TBD{Confirm role(s) and owned deliverables.} \\
-Vincent Le & \TBD{Confirm role(s) and owned deliverables.} \\
+Ethan Dibble & TBD \\
+Olga Ishimwe & TBD \\
+Sefu Alvarez & TBD \\
+Vincent Le   & TBD \\
 \bottomrule
 \end{tabularx}
 
@@ -123,9 +123,9 @@ The proposal is grounded in the sponsor's experience helping community members w
 
 \subsection{Human problem}
 
-Demand for non-medical, in-person support is high, but families lack a simple, trusted way to find appropriate caregivers, coordinate work, and remain informed. Informal coordination places another substantial responsibility on relatives who may already be balancing work, family, and care duties. Caregivers, meanwhile, need a way to find suitable work that fits their skills, location, and availability.
+Demand for non-medical, in-person support is high, but families lack a simple, affordable, trusted way to find appropriate caregivers, coordinate work, and remain informed. Informal coordination places another substantial responsibility on relatives who may already be balancing work, family, and care duties. Caregivers, meanwhile, need a way to find suitable work that fits their skills, location, and availability.
 
-Sabay addresses this gap through discovery, trust signals, scheduling, communication, and practical service coordination in one accessible resource. Where payment is appropriate, the platform may support it as part of that coordination, but financial transactions are not the project's defining purpose. The intended outcome is not medical diagnosis or institutional care; it is stronger community connection and dependable support for daily life and aging in place.
+Sabay addresses this gap through discovery, trust signals, scheduling, communication, and practical service coordination in one accessible resource.
 
 \subsection{Product principles}
 
@@ -167,28 +167,22 @@ The mockups add useful product direction: ZIP-code and service-category search; 
 
 \subsection{Current implementation status}
 
-As of August 20, 2026, the repository is an early Django scaffold, not yet the community platform described above. It contains a Django 6.0.7 project, a shared base template, a landing-page view, Simple.css styling, SQLite development configuration, Django's built-in administration route, basic page/static-file tests, Ruff formatting and lint configuration, and GitHub Actions checks. No domain models or implemented user flows for profiles, search, booking, messaging, verification, payments, or notifications are present in the inspected source.
+As of August 20, 2026, the repository is an early Django scaffold, not yet the community platform described above. It contains a shared base template, a landing-page view, Simple.css styling, SQLite development configuration, Django's built-in administration route, basic page/static-file tests, Ruff formatting and lint configuration, and GitHub Actions checks.
 
 \subsection{Constraints and assumptions}
 
 \begin{itemize}
   \item The sponsor requires the software to use the MIT open-source license; the repository includes that license.
   \item The team has selected Python and Django. The current scaffold uses Django 6.0.7 and SQLite for local development.
-  \item The primary deliverable is a responsive, mobile-friendly web application. Native Android and iOS applications are aspirational and conditional on available time.
+  \item The primary deliverable is a responsive, mobile-friendly web application.
   \item The experience must remain understandable to older or less technical users. Accessibility, readable typography, plain language, large targets, keyboard operation, and mobile layouts should be acceptance criteria rather than late-stage polish.
-  \item Care is described as home services and non-medical support. \TBD{Confirm the precise service boundary, supported geography, eligibility rules, and required legal disclaimers.}
+  \item Care is described as home services and non-medical support.
   \item Safety-sensitive functions such as background checks, credential verification, payments, and emergency handling will depend on third-party services and sponsor policy decisions.
 \end{itemize}
 
 \subsection{Planned delivery for the following term}
 
-During the following term, the team plans to implement and validate the sponsor-approved key objectives as a coherent MVP. The expected technical handoff should include the GitHub repository, setup and deployment documentation, automated tests, the final project document, and a working demonstration deployment. \TBD{Confirm whether Erin expects a maintained production deployment, a time-limited demonstration server, or source code only; identify the hosting owner and handoff date.}
-
-\subsection{Rejected or deferred goals}
-
-No supplied artifact records formally rejected features. Native mobile apps appear outside the core web MVP (the proposal says ``if possible''). The proposal also identifies later expansion candidates: check-ins, reminders, task lists, visit tracking, and an emergency-contact system. These are treated as future work rather than rejected ideas. Membership tiers, testimonials, video interviews, dedicated care advisors, instant booking, referral rewards, and specific prices appear in mockups but are not confirmed by the MVP slides.
-
-\TBD{Record sponsor-approved scope decisions, particularly which mockup-only features are MVP, backlog, or rejected, and explain why any feature was rejected.}
+During the following term, the team plans to implement and validate the sponsor-approved key objectives as a coherent MVP. The expected technical handoff should include the GitHub repository, setup and deployment documentation, automated tests, the final project document, and a working demonstration deployment. We have already established a domain (sabay.org) and a cloud server through Vultr for production deployments. We will automate deployment via Github Actions CICD.
 
 \section{What: Essential User Stories}
 
@@ -206,8 +200,6 @@ The following stories translate the proposal, slides, and mockups into concise u
   \item \textbf{Verify caregivers.} As an administrator, I can review caregiver profiles and evidence and record a verification decision so that users can distinguish reviewed providers.
   \item \textbf{Pay for completed service.} As a care seeker or family coordinator, I can pay through the platform and receive a transaction record so that compensation is handled consistently.
 \end{enumerate}
-
-Cross-cutting acceptance criteria should cover notifications, authorization, privacy, error recovery, responsive layouts, and accessibility. These criteria support the stories rather than becoming vague stand-alone stories.
 
 \section{How: Architecture}
 
@@ -253,10 +245,6 @@ Persistence & Relational storage for users and community-platform data. SQLite i
 \bottomrule
 \end{tabularx}
 
-\subsection{Technology decisions still required}
-
-\TBD{Select and document production hosting, production database, object/file storage, email/SMS or push notifications, payment processor and payout model, background-check or verification workflow, observability, backups, secrets management, domain/DNS, and deployment automation. Also decide whether a separate API or JavaScript frontend is necessary; the current code uses server-rendered Django templates.}
-
 \section{How: Development Process}
 
 \subsection{Workflow and tools}
@@ -299,31 +287,7 @@ Third-party service delay & Blocks verification, payment, or notifications & Sel
 \bottomrule
 \end{longtable}
 
-\section{How: Schedule}
-
-Only repository history and document context provide confirmed timing. The schedule below is therefore a planning framework for the following term rather than an invented commitment. Exact dates should be aligned with the next term's academic calendar and confirmed with Erin and the capstone supervisor.
-
-\begin{tabularx}{\textwidth}{p{0.23\textwidth}p{0.23\textwidth}X}
-\toprule
-\textbf{Date} & \textbf{Milestone} & \textbf{Status / expected result} \\
-\midrule
-Before July 11, 2026 & Team formation, preference presentation, assignment, and sponsor kickoff & \TBD{Add exact dates and outcomes.} \\
-July 11, 2026 & Repository foundation & \status{Complete}: initial Django structure and MIT License committed. \\
-July 12--15, 2026 & Setup and product design artifacts & \status{Complete}: setup instructions and supplied mockups dated July 15. \\
-July--August 2026 & Development workflow foundation & \status{Complete}: basic UI, CI, Git hooks, tests, and dependency automation. \\
-\TBD{date} & Mid-project meeting/presentation & Slides exist for this milestone; add the presentation date and decisions made. \\
-\TBD{date} & Scope and architecture freeze & Sponsor approves MVP stories, service boundary, providers, data model, and deployment target. \\
-\TBD{date} & Vertical-slice demo & Account, profile/search, booking, and basic communication work end to end in a test environment. \\
-\TBD{date} & MVP feature complete & MVP stories implemented; priority defects, security, and accessibility work remain. \\
-\TBD{date} & Development complete & Release candidate deployed, tested, documented, and ready for acceptance. \\
-\TBD{date} & Final presentation & Submit and present final capstone results. \\
-\TBD{week} & Sponsor delivery & Repository, deployment or demo, documentation, credentials handoff process, and known-issues list delivered. \\
-\bottomrule
-\end{tabularx}
-
-\TBD{Add the academic calendar dates, break between quarters, final presentation deadline, sponsor-delivery week, owners, and measurable exit criteria.}
-
-\section{What: Future Work and Backlog}
+\section{Future Work and Backlog}
 
 \subsection{Likely post-MVP features}
 
@@ -343,36 +307,6 @@ Optional memberships or subscriptions & 3--6 team-weeks & Consider only if they 
 Advanced matching and recommendations & 4--8+ team-weeks & Requires sufficient data, explainable ranking criteria, and bias review. \\
 \bottomrule
 \end{tabularx}
-
-\subsection{Backlog summary}
-
-The mid-project slides say GitHub issues and milestones are used, but the supplied local artifacts do not establish the current issue count or category breakdown. \TBD{Add the canonical backlog URL, whether access is required, the current open-item count, and a summary by type (features, defects, security, accessibility, infrastructure, documentation, and research). Review and update this count at least monthly.}
-
-\section{Information Needed to Complete This Document}
-
-The following decisions and facts should be obtained from the team, supervisor, or sponsor. They are grouped by who can most efficiently answer them.
-
-\subsection{Team and supervisor}
-
-\begin{itemize}
-  \item Supervisor's full name; exact cycle dates; formation, assignment, kickoff, mid-project, final-presentation, and sponsor-delivery dates.
-  \item Each team member's primary responsibilities and current work allocation.
-  \item Canonical links for the issue board, shared drive, design source, deployed environment, test evidence, and operating documentation; access procedure for each.
-  \item Confirmed software-development cadence, meeting/review cadence, definition of done, branching/review rules, and deployment owner.
-  \item Current backlog count/categories and implemented-versus-planned status at each monthly revision.
-\end{itemize}
-
-\subsection{Sponsor and product decisions}
-
-\begin{itemize}
-  \item Confirm Erin Meneley as sponsor and provide the sponsor organization description, if any.
-  \item Approve the four user types and rank/accept the proposed top ten user stories.
-  \item Define ``caregiver,'' ``helper,'' ``certified,'' ``verified,'' and the boundary between non-medical and medical care.
-  \item Choose which mockup-only concepts are MVP, future, or rejected: reviews, responses to support requests, subscriptions, specific prices, video interviews, instant booking, referrals, and dedicated advisors. Confirm how any financial model will preserve the project's community-service mission and equitable access.
-  \item Define supported geography, ages/eligibility, service categories, scheduling and cancellation rules, recurring services, disputes, refunds, payouts, fees, taxes, and moderation/support policy.
-  \item Decide what family updates require and how a care recipient consents to sharing information with a family coordinator.
-  \item Confirm the exact sponsor-delivery package and who owns the product, infrastructure, domain, provider accounts, and ongoing maintenance after capstone.
-\end{itemize}
 
 \subsection{Technical, safety, and legal decisions}
 
