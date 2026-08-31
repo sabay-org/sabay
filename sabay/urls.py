@@ -22,7 +22,7 @@ from . import views
 urlpatterns = [
     path('', views.home, name='home'),
     path('admin/', admin.site.urls),
-    path('', include('django.contrib.auth.urls')),
     path('members/', include('members.urls')),
     path('dashboard/', views.dashboard , name='dashboard'),
+    
 ]

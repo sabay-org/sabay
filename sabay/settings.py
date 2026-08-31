@@ -117,6 +117,6 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # Global URLs incase url changes 
-LOGIN_URL='login'
+LOGIN_URL='members:login'
 REDIRECT_URL_LOGIN='home'
-REDIRECT_URL_LOGOUT='login'
+REDIRECT_URL_LOGOUT='home'

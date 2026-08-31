@@ -6,17 +6,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Sabay{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/simple.min.css' %}">
+     <link rel="stylesheet" href="{% static 'css/custom.css' %}">
     {% block extra_head %}{% endblock %}
   </head>
   <body>
-    <header>
+	    <nav>
+		    <ul>
+			    <li><a href="{% url 'home' %}"> Home </a></li>
+
+			    <li><a href="{% url 'dashboard' %}">Dashboard </a></li>
+			    <!-- Checks to see if user is authenticated -->
+			    {% if user.is_authenticated %}
+			    	<form action="{% url 'members:logout' %}" method="post" class="logout-form">
+        			{% csrf_token %}
+				<li><button id="btn" type="submit">Logout</button></li>
+   			 	</form>
+			    {% else %}
+			    	<li><a href="{% url 'members:login' %}">Login</a></li>
+			    {% endif %}
+		    </ul>
+	    </nav>
+
+
       {% block header %}
-        <nav aria-label="Main navigation">
-          <a href="{% url 'home' %}">Sabay</a>
-        </nav>
-        <h1>{% block page_heading %}Sabay{% endblock %}</h1>
+	 <!-- <h1>{% block page_heading %}Sabay{% endblock %}</h1> -->
       {% endblock %}
-    </header>
 
     <main>
       {% block content %}{% endblock %}

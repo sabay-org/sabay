@@ -1,0 +1,59 @@
+/*
+ * We're using simple.min.css as our base framework.
+ * When adding custom rules make sure to inspect the page and check
+ * simple.min.css's rules first. For our custom rules to work we need
+ * them to be equal or higher specificity and MUST be loaded after 
+ * simple.min.css.
+ */
+
+/* Navigation custom rules */
+nav{
+	grid-column: 1/-1;
+	background-color: #808080;
+}
+ul {
+	display:flex;
+	justify-content: right;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	list-style-type: none;
+}
+
+ul li {
+  	float: left;
+}
+
+ul li a {
+  	color: white;
+  	text-align: center;
+  	padding: 20px 25px;
+  	text-decoration: none;
+  	display: block;
+}
+
+ul li a:hover {
+  	background-color: #111111;
+}
+
+#btn{
+	display: block;
+	width: 100%;
+	background: none;
+	border: none;
+	color: white;
+	text-align: center;
+	padding: 20px 25px;
+	text-decoration: none;
+	font: inherit;
+	cursor: pointer;
+	margin-bottom: 0;
+	border-radius: initial;
+}
+
+#btn:hover {
+    background-color: #111111;
+}
+
+/* Rule set for mobile nav */
+
