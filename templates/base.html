@@ -7,11 +7,17 @@
     <title>{% block title %}Sabay{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/simple.min.css' %}">
      <link rel="stylesheet" href="{% static 'css/custom.css' %}">
+     <script src="{% static 'js/nav.js' %}" defer></script>
     {% block extra_head %}{% endblock %}
   </head>
   <body>
 	    <nav>
-		    <ul>
+		    <button class="hamburger-btn" type="button" aria-controls="nav-menu" aria-expanded="false" aria-label="Toggle menu">
+			    <span class="bar"></span>
+			    <span class="bar"></span>
+			    <span class="bar"></span>
+		    </button>
+		    <ul id="nav-menu" >
 			    <li><a href="{% url 'home' %}"> Home </a></li>
 
 			    <li><a href="{% url 'dashboard' %}">Dashboard </a></li>

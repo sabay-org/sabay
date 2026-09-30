@@ -55,5 +55,57 @@ ul li a:hover {
     background-color: #111111;
 }
 
-/* Rule set for mobile nav */
+nav button.hamburger-btn {
+	display: none;
+	flex-direction: column;
+	justify-content: center;
+	gap: 5px;
+	background: none;
+	border: none;
+	border-radius: 0;
+	margin: 0;
+	padding: 20px 25px;
+	cursor: pointer;
+}
 
+nav button.hamburger-btn:hover {
+	background-color: #111111;
+}
+.hamburger-btn .bar {
+	display: block;
+	width: 24px;
+	height: 3px;
+	background-color: white;
+	border-radius: 2px;
+}
+
+
+/* Rule set for mobile nav */
+@media (max-width: 720px) {
+	nav {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: flex-end;
+	}
+
+	nav button.hamburger-btn {
+		display: flex;
+	}
+
+	#nav-menu {
+		display: none;
+		flex-direction: column;
+		width: 100%;
+	}
+
+	#nav-menu.active {
+		display: flex;
+	}
+
+	#nav-menu li a,
+	#btn {
+		text-align: left;
+		border-top: 1px solid #000000;
+	}
+
+}
