@@ -1,0 +1,111 @@
+/*
+ * We're using simple.min.css as our base framework.
+ * When adding custom rules make sure to inspect the page and check
+ * simple.min.css's rules first. For our custom rules to work we need
+ * them to be equal or higher specificity and MUST be loaded after 
+ * simple.min.css.
+ */
+
+/* Navigation custom rules */
+nav{
+	grid-column: 1/-1;
+	background-color: #808080;
+}
+ul {
+	display:flex;
+	justify-content: right;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	list-style-type: none;
+}
+
+ul li {
+  	float: left;
+}
+
+ul li a {
+  	color: white;
+  	text-align: center;
+  	padding: 20px 25px;
+  	text-decoration: none;
+  	display: block;
+}
+
+ul li a:hover {
+  	background-color: #111111;
+}
+
+#btn{
+	display: block;
+	width: 100%;
+	background: none;
+	border: none;
+	color: white;
+	text-align: center;
+	padding: 20px 25px;
+	text-decoration: none;
+	font: inherit;
+	cursor: pointer;
+	margin-bottom: 0;
+	border-radius: initial;
+}
+
+#btn:hover {
+    background-color: #111111;
+}
+
+nav button.hamburger-btn {
+	display: none;
+	flex-direction: column;
+	justify-content: center;
+	gap: 5px;
+	background: none;
+	border: none;
+	border-radius: 0;
+	margin: 0;
+	padding: 20px 25px;
+	cursor: pointer;
+}
+
+nav button.hamburger-btn:hover {
+	background-color: #111111;
+}
+.hamburger-btn .bar {
+	display: block;
+	width: 24px;
+	height: 3px;
+	background-color: white;
+	border-radius: 2px;
+}
+
+
+/* Rule set for mobile nav */
+@media (max-width: 720px) {
+	nav {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: flex-end;
+	}
+
+	nav button.hamburger-btn {
+		display: flex;
+	}
+
+	#nav-menu {
+		display: none;
+		flex-direction: column;
+		width: 100%;
+	}
+
+	#nav-menu.active {
+		display: flex;
+	}
+
+	#nav-menu li a,
+	#btn {
+		text-align: left;
+		border-top: 1px solid #000000;
+	}
+
+}
