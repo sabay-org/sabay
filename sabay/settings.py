@@ -21,11 +21,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "django-insecure-dn66da_8b!9tl95v9c((1-%@3f(@fzn51b0fu4-q)l9a!l(#l7"
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["100.70.173.44", "100.80.147.45", "localhost", "127.0.0.1"]
 
 
 # Application definition
@@ -43,6 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # project apps
     "chat",
+    "members",
 ]
 
 MIDDLEWARE = [
@@ -135,3 +135,8 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+
+# Global URLs incase url changes
+LOGIN_URL = "members:login"
+REDIRECT_URL_LOGIN = "home"
+REDIRECT_URL_LOGOUT = "home"
