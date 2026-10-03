@@ -8,16 +8,30 @@
   --slateblue: #6a5acd;
   --babypink: #f8d2f9;
 }
-* {
-  box-sizing: border-box;
+
+/* unset simple css start */
+body {
+  display: block;
 }
 
-body {
+aside, details, pre, progress {
+  margin-bottom: 0;
+}
+
+aside {
+  width: 100%;
+  padding: 0;
+  margin-inline-start: 0;
+}
+/* unset simple css end */
+
+.chat-page {
+  padding: 90px 20px 20px;
   margin: 0;
   font-family: system-ui, sans-serif;
 }
 
-nav {
+.chat-page .chat-nav {
   position: fixed;
   top: 0px;
   left: 0px;
@@ -30,80 +44,79 @@ nav {
   z-index: 100;
 }
 
-nav .brand {
+.chat-page .chat-nav .brand {
   font-weight: 700;
   font-size: 1.1rem;
   color: var(--black);
   text-decoration: none;
 }
 
-.nav-links {
+.chat-page .chat-nav-links {
   display: flex;
   gap: 30px;
 }
 
-nav a {
+.chat-page .chat-nav a {
   color: var(--black);
   text-decoration: none;
   font-weight: 600;
 }
 
-nav a:hover {
+.chat-page .chat-nav a:hover {
   opacity: 0.6;
 }
 
-main {
-  padding: 90px 20px 20px;
-}
-
 /* details about the bars */
-.message-layout {
+.chat-page .message-layout {
   display: grid;
   grid-template-columns: 220px 1fr 260px;
   gap: 20px;
   height: calc(100vh - 130px);
 }
-.conversation-list,
-.active-thread,
-.profile-detail,
-.suggested-profiles {
+.chat-page .conversation-list,
+.chat-page .active-thread,
+.chat-page .profile-detail,
+.chat-page .suggested-profiles {
   border: 2px solid black;
   padding: 16px;
 }
-.sidebar-right {
+.chat-page .sidebar-right {
   display: flex;
   flex-direction: column;
   gap: 20px;
   height: 100%;
 }
-.profile-detail,
-.suggested-profiles {
+.chat-page .profile-detail,
+.chat-page .suggested-profiles {
   flex: 1;
 }
-.placeholder-text {
+.chat-page .placeholder-text {
   font-family: system-ui, sans-serif;
   font-size: 0.9rem;
   line-height: 1.5;
 }
 /* the aside bar */
-.conversation-items {
+.chat-page .conversation-items {
+  display: flex;
+  flex-direction: column;
   list-style: none;
   margin: 0;
   padding: 0;
 }
-.conversation-item {
+.chat-page .conversation-item {
+  display: block;
   padding: 10px 8px;
   cursor: pointer;
   border-bottom: 1px solid #eee;
 }
-.conversation-item:hover {
+.chat-page .conversation-item:hover {
   background-color: var(--lavender);
 }
-.conversation-name {
+.chat-page .conversation-name {
   display: block;
   font-weight: 600;
 }
-.conversation-preview {
+.chat-page .conversation-preview {
   display: block;
   font-size: 0.85rem;
   color: #888;
