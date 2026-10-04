@@ -8,8 +8,8 @@ from django.urls import reverse
 
 from .models import CaretakerInvite
 
-class SignupTests(TestCase):
 
+class SignupTests(TestCase):
     def test_signup_creates_user(self):
         response = self.client.post(
             reverse("members:signup"),
