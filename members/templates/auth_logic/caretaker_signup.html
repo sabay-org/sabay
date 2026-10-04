@@ -1,0 +1,26 @@
+{% extends 'base.html' %} {% block content %}
+<h2>Caretaker Sign Up</h2>
+
+<p>Invitation for: {{ invite.email }}</p>
+
+{% if error %}
+<p>{{ error }}</p>
+{% endif %}
+
+<form method="post">
+  {% csrf_token %}
+
+  <div>
+    <label for="username">Username</label>
+    <input type="text" name="username" id="username" />
+
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" />
+
+    <label for="confirm_password">Confirm Password</label>
+    <input type="password" name="confirm_password" id="confirm_password" />
+  </div>
+
+  <button type="submit">Sign Up</button>
+</form>
+{% endblock %}

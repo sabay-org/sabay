@@ -5,6 +5,8 @@ from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
+from .models import CaretakerInvite
+
 """
 Decided to use a custom login view
 - makes sure the request method is post before authenticating
@@ -54,6 +56,48 @@ def signup(request):
             return redirect("members:login")
 
     return render(request, "auth_logic/signup.html", {"error": error})
+
+def caretaker_signup(request, token):
+    try:
+        invite = CaretakerInvite.objects.get(token=token, used=False)
+    except CaretakerInvite.DoesNotExist:
+        return render(request, "auth_logic/invalid_invite.html")
+
+    error = None
+
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        confirm_password = request.POST.get("confirm_password")
+
+        if not username or not password or not confirm_password:
+            error = "All fields are required"
+        elif password != confirm_password:
+            error = "Passwords do not match"
+        elif User.objects.filter(username=username).exists():
+            error = "Username already exists"
+        elif User.objects.filter(email=invite.email).exists():
+            error = "Email already exists"
+        else:
+            User.objects.create_user(
+                username=username,
+                email=invite.email,
+                password=password,
+            )
+
+            invite.used = True
+            invite.save()
+
+            return redirect("members:login")
+
+    return render(
+        request,
+        "auth_logic/caretaker_signup.html",
+        {
+            "invite": invite,
+            "error": error,
+        },
+    )
 
 """
 Using a very simple logout view atm. 
