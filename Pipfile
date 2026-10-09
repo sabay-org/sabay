@@ -4,10 +4,15 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+channels = "*"
+channels_redis = "*"
+daphne = "*"
 django = "*"
-ruff = "*"
+gunicorn = "*"
 
 [dev-packages]
+ruff = "*"
+selenium = "*"
 
 [requires]
 python_version = "3.14"
