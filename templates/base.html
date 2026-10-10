@@ -23,20 +23,24 @@
         <span class="bar"></span>
         <span class="bar"></span>
       </button>
-      <ul id="nav-menu">
-        <li><a href="{% url 'home' %}"> Home </a></li>
 
-        <li><a href="{% url 'dashboard' %}">Dashboard </a></li>
+      <ul id="nav-menu">
+        <li><a href="{% url 'home' %}">Home</a></li>
+        <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
+        <li><a href="{% url 'chat:index' %}">Chat</a></li>
+
         <!-- Checks to see if user is authenticated -->
         {% if user.is_authenticated %}
-        <form
-          action="{% url 'members:logout' %}"
-          method="post"
-          class="logout-form"
-        >
-          {% csrf_token %}
-          <li><button id="btn" type="submit">Logout</button></li>
-        </form>
+        <li>
+          <form
+            action="{% url 'members:logout' %}"
+            method="post"
+            class="logout-form"
+          >
+            {% csrf_token %}
+            <button id="btn" type="submit">Logout</button>
+          </form>
+        </li>
         {% else %}
         <li><a href="{% url 'members:login' %}">Login</a></li>
         <li><a href="{% url 'members:signup' %}">Sign Up</a></li>
