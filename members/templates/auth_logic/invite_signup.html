@@ -1,7 +1,8 @@
 {% extends 'base.html' %} {% block content %}
-<h2>Caretaker Sign Up</h2>
+<h2>Invitation Sign Up</h2>
 
 <p>Invitation for: {{ invite.email }}</p>
+<p>Role: {{ invite.get_role_display }}</p>
 
 {% if error %}
 <p>{{ error }}</p>
@@ -12,13 +13,18 @@
 
   <div>
     <label for="username">Username</label>
-    <input type="text" name="username" id="username" />
+    <input type="text" name="username" id="username" required />
 
     <label for="password">Password</label>
-    <input type="password" name="password" id="password" />
+    <input type="password" name="password" id="password" required />
 
     <label for="confirm_password">Confirm Password</label>
-    <input type="password" name="confirm_password" id="confirm_password" />
+    <input
+      type="password"
+      name="confirm_password"
+      id="confirm_password"
+      required
+    />
   </div>
 
   <button type="submit">Sign Up</button>
