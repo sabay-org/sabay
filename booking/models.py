@@ -1,11 +1,11 @@
 from django.db import models
-from members.models import Seeker, Employee
+from members.models import Seeker, Provider
 # Create your models here.
 ##model for job postings. different from location.seeker or location.employee'
 
 class JobPost(models.Model):
     seeker = models.ForeignKey(Seeker, on_delete=models.CASCADE, related_name="job_posts")
-    Employee = models.ForeignKey(Employee, null=True, blank=True, on_delete=models.SET_NULL, related_name="accepted_jobs")
+    Provider = models.ForeignKey(Provider, null=True, blank=True, on_delete=models.SET_NULL, related_name="accepted_jobs")
     task_type = models.CharField(max_length=200)
     description = models.TextField()
     address = models.CharField(max_length=255)
