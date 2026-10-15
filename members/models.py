@@ -19,7 +19,7 @@ class Seeker(models.Model):
 
 class Provider(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="provider_profile")
-    profilePicture = models.ImageField(upload_to="profile_picture", null=True, blank=True, verbose_name="Profile Picture")
+    profilePicture = models.ImageField(upload_to="profile_picture/", null=True, blank=True, verbose_name="Profile Picture")
     bio = models.TextField(blank=True, verbose_name="Bio")
     specialties=models.ManyToManyField(Specialty, blank=True, verbose_name="Specialties")
     # Could we use the django-localflavor for the state? 
@@ -32,11 +32,18 @@ class Provider(models.Model):
     def __str__(self):
         return f"Provider: {self.user}"
 
+
 class Cert(models.Model):
-    provider = models.ForeignKey(Provider, on_delete=models.CASCADE, related_name="certificates")
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200, unique=True)
+
+    def __str__(self):
+        return self.name
+
+class ProviderCert(models.Model):
+    provider = models.ForeignKey(Provider, on_delete=models.CASCADE, related_name="certifications")
+    cert = models.ForeignKey(Cert, on_delete=models.PROTECT)
     issuer = models.CharField(max_length=150, blank=False)
-    document = models.FileField(upload_to="certificates", blank=True)
+    document = models.FileField(upload_to="certificates/", blank=True)
     expires = models.DateField(null=True, blank=False)
     is_verified = models.BooleanField(default=False)
 
