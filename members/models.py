@@ -35,16 +35,27 @@ class Provider(models.Model):
 
 class Cert(models.Model):
     name = models.CharField(max_length=200, unique=True)
-
+    
+    # Allows us to change the display name on the admin panel
+    class Meta:
+        verbose_name = "Certification"
+        verbose_name_plural = "Certifications"
     def __str__(self):
         return self.name
 
 class ProviderCert(models.Model):
+
+    class Meta:
+        verbose_name = "Provider Specific Certification"
+        verbose_name_plural = "Provider Specific Certifications"
     provider = models.ForeignKey(Provider, on_delete=models.CASCADE, related_name="certifications")
     cert = models.ForeignKey(Cert, on_delete=models.PROTECT)
     issuer = models.CharField(max_length=150, blank=False)
     document = models.FileField(upload_to="certificates/", blank=True)
     expires = models.DateField(null=True, blank=False)
     is_verified = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f" {self.provider}"
 
 
