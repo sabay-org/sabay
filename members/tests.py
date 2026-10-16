@@ -2,7 +2,7 @@
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from django.test import TestCase 
-
+from django.urls import reverse
 from .models import Cert, Provider, Specialty, ProviderCert
 
 User = get_user_model()
@@ -56,9 +56,11 @@ class CertificateTests(TestCase):
         self.assertEqual(ProviderCert.objects.filter(cert=self.cpr).count(), 2)
 
 
-
-
-
+# GET method test for autofill function
+class AutofillCityTests(TestCase):
+    def test_get_city_code(self):
+        response = self.client.get(reverse("members:city_suggestions"), {"page": 1})
+        self.assertEqual(response.status_code, 200)
 
 
 

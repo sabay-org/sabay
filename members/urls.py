@@ -24,4 +24,5 @@ app_name = "members"
 urlpatterns = [
     path("login/", views.login, name="login"),
     path("logout/", views.logout, name="logout"),
+    path("api/cities/", views.city_autofill, name="city_suggestions"),
 ]
