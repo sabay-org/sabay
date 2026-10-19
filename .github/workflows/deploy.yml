@@ -21,9 +21,9 @@ jobs:
     steps:
       - name: Deploy exact commit over restricted SSH
         env:
-          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_PORT: ${{ vars.DEPLOY_PORT || '22' }}
-          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+          DEPLOY_USER: ${{ vars.DEPLOY_USER || 'sabay' }}
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
           DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
           DEPLOY_SHA: ${{ github.sha }}
