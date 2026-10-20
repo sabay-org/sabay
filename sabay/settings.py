@@ -31,12 +31,18 @@ ALLOWED_HOSTS = ["100.70.173.44", "100.80.147.45", "localhost", "127.0.0.1"]
 # Application definition
 
 INSTALLED_APPS = [
+    # external apps
+    "daphne",
+    "channels",
+    # default apps
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # project apps
+    "chat",
     "members",
     "booking",
 ]
@@ -69,7 +75,17 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "sabay.wsgi.application"
+ASGI_APPLICATION = "sabay.asgi.application"
 
+CHANNEL_LAYERS = {
+    "default": {
+        # "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+        "CONFIG": {
+            # "hosts": [{"address": "redis://redis:6379", "socket_timeout": None}],
+        },
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
@@ -78,6 +94,9 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
+        "TEST": {
+            "NAME": BASE_DIR / "test_db.sqlite3",
+        },
     }
 }
 
@@ -118,6 +137,8 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 # Global URLs incase url changes
 LOGIN_URL = "members:login"
