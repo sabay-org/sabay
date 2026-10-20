@@ -1,9 +1,27 @@
 {% extends 'base.html' %}
 
+{% load static %} 
+
 {% block page_heading %}Dashboard{% endblock %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'providers/css/dashboard.css' %}">
+{% endblock %}
+
 {% block content %}
-  <section>
-    <h2>Test dashboard</h2>
-  </section>
+<div class="dashboard">
+	<div class="greeting" >
+		
+		<h1> Good evening, {{ user.first_name }} </h1>
+		<div class="accept-container">
+			<p> Accepting Jobs </p>
+			<label class="switch">
+				<input type="checkbox">
+				<span class="slider round"></span>
+			</label>
+		</div>
+	</div>
+	<div class="booking-req">
+	</div>
+</div>
 {% endblock %}

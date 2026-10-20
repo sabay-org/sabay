@@ -27,6 +27,7 @@ class Provider(models.Model):
     # Maybe we can add something to check for a valid city
     # another model??
     city= models.CharField(max_length=50, blank=True, verbose_name="City")
+    is_available = models.BooleanField(default=False, verbose_name="Is Available")
     
 
     def __str__(self):

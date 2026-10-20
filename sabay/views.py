@@ -9,8 +9,7 @@ def home(request):
 
 
 """ Requiring user to be logged in """
-
-
 @login_required(login_url=settings.LOGIN_URL)
 def dashboard(request):
-    return render(request, "dashboard.html")
+    provider = getattr(request.user, "provider_profile", None)
+    return render(request, "providers/dashboard.html", {"provider": provider } )

@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% load static %} 
+
+{% block page_heading %}Dashboard{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'providers/css/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+	<div class="greeting" >
+		<h1> Good evening, {{ user.first_name }} </h1>
+		{% if provider %}		
+		<div class="accept-container">
+			<p> Accepting Jobs </p>
+			<form method="post" action="{% url 'members:toggle_availability' %}">
+				{% csrf_token %}
+				<label class="switch">
+					<input type="checkbox" name="is_available"
+						{% if provider.is_available %}checked{% endif %}
+						onchange="this.form.submit()">
+					<span class="slider round"></span>
+				</label>
+			</form>
+		</div>
+		{% endif %}
+	</div>
+	<div class="booking-req">
+		<div class="booking-header">
+			<h2>Booking requests </h2>
+			<a href="">View all</a>
+		</div>
+	</div>
+</div>
+{% endblock %}

@@ -50,3 +50,13 @@ def city_autofill(request):
     results = [c for c in CITIES if city in c.lower()][:10]
     return JsonResponse({"results" : results})
 
+"""
+Will allow providers to toggle if they are available/accepting jobs.
+Hopefully this can replace the availablity deal :)
+"""
+@require_POST
+def toggle_availability(request):
+    provider = request.user.provider_profile
+    provider.is_available = "is_available" in request.POST
+    provider.save()
+    return redirect("dashboard")
