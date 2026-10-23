@@ -16,6 +16,8 @@ body {
 }
 main {
 	padding-inline: 1.5rem;
+	display: flex;
+	justify-content: center;
 }
 
 /* Navigation custom rules */

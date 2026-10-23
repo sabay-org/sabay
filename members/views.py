@@ -6,6 +6,7 @@ from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 
 from .cities import CITIES
+from booking.models import JobPost
 
 """
 Decided to use a custom login view
@@ -60,3 +61,20 @@ def toggle_availability(request):
     provider.is_available = "is_available" in request.POST
     provider.save()
     return redirect("dashboard")
+
+
+"""
+This function will allow providers to see their booking request.
+"""
+from booking.models import JobPost
+
+def provider_dashboard(request):
+    booking_requests = (
+        JobPost.objects
+        .select_related("seeker__user")
+        .filter(status="open", provider=request.user.provider)
+        .order_by("-created_at")[:5]
+    )
+    return render(request, "providers/dashboard.html", {
+        "booking_requests": booking_requests,
+    })

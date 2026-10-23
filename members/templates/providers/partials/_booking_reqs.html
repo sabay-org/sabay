@@ -1,0 +1,29 @@
+{% load static %}
+
+{% partialdef booking-req %}
+<div class="bookings-container">
+	{% for job in booking_requests %}
+	<div class="booking-card">
+		<div class="ls-card">
+			<div class="img-container">
+				{% if job.seeker.photo %}
+					<img src=" {{ job.seeker.photo.url }}" alt="seeker profile picture">
+				{% else %}
+					<p>No PFP</p>
+				{% endif %}
+			</div>
+			<div class="booking-info">
+				<span>{{ job.seeker.user.get_full_name }}</span>
+				<p>{{ job.task_type }}</p>
+				<p>{{ job.address }} </p>
+			</div>
+		</div>
+		<div class="options">
+			<button> Accept </button>
+			<button> Decline </button>
+			<button> Message </button>
+		</div>
+	</div>
+	{% endfor %}
+</div>
+{% endpartialdef %}
