@@ -1,18 +1,21 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
-from django.http import JsonResponse
+
+from booking.models import JobPost
 
 from .cities import CITIES
-from booking.models import JobPost
 
 """
 Decided to use a custom login view
 - makes sure the request method is post before authenticating
 - checks to make sure user exists before calling auth
 """
+
+
 def login(request):
     error = None
     if request.method == "POST":
@@ -34,27 +37,35 @@ def login(request):
 Using a very simple logout view atm. 
 - makes sure the request method is post
 """
+
+
 @require_POST
 def logout(request):
     auth_logout(request)
     return redirect("home")
 
+
 """
 autofill function uses GET method to simple backend list. 
 Will be integrate into front end later
 """
+
+
 def city_autofill(request):
-    city= request.GET.get("city", "").strip().lower()
-    
+    city = request.GET.get("city", "").strip().lower()
+
     if not city:
         return JsonResponse({"results": []})
     results = [c for c in CITIES if city in c.lower()][:10]
-    return JsonResponse({"results" : results})
+    return JsonResponse({"results": results})
+
 
 """
 Will allow providers to toggle if they are available/accepting jobs.
 Hopefully this can replace the availablity deal :)
 """
+
+
 @require_POST
 def toggle_availability(request):
     provider = request.user.provider_profile
@@ -66,15 +77,18 @@ def toggle_availability(request):
 """
 This function will allow providers to see their booking request.
 """
-from booking.models import JobPost
+
 
 def provider_dashboard(request):
     booking_requests = (
-        JobPost.objects
-        .select_related("seeker__user")
+        JobPost.objects.select_related("seeker__user")
         .filter(status="open", provider=request.user.provider)
         .order_by("-created_at")[:5]
     )
-    return render(request, "providers/dashboard.html", {
-        "booking_requests": booking_requests,
-    })
+    return render(
+        request,
+        "providers/dashboard.html",
+        {
+            "booking_requests": booking_requests,
+        },
+    )

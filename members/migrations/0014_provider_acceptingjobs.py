@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('members', '0013_alter_providercert_options'),
+        ("members", "0013_alter_providercert_options"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='provider',
-            name='acceptingJobs',
-            field=models.BooleanField(default=False, verbose_name='Accepting Jobs'),
+            model_name="provider",
+            name="acceptingJobs",
+            field=models.BooleanField(default=False, verbose_name="Accepting Jobs"),
         ),
     ]

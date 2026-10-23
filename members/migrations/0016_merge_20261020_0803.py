@@ -4,11 +4,9 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('members', '0002_seeker_date_of_birth_seeker_photo'),
-        ('members', '0015_remove_provider_acceptingjobs_provider_is_available'),
+        ("members", "0002_seeker_date_of_birth_seeker_photo"),
+        ("members", "0015_remove_provider_acceptingjobs_provider_is_available"),
     ]
 
-    operations = [
-    ]
+    operations = []

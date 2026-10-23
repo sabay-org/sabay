@@ -17,7 +17,7 @@ Including another URLconf
 
 from django.urls import path
 
-from . import views, seeker_views
+from . import seeker_views, views
 
 app_name = "members"
 
