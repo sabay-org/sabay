@@ -19,11 +19,16 @@
 			</div>
 		</div>
 		<div class="options">
-			<button> Accept </button>
-			<button> Decline </button>
+			<form method="post" action="{% url 'members:job_response' job.id %}">
+				{% csrf_token %}
+				<button type="submit" name="action" value="accept"> Accept </button>
+				<button type="submit" name="action" value="decline"> Decline </button>
+			</form>
 			<button> Message </button>
 		</div>
 	</div>
+	{% empty %}
+	<p> No booking requests right now.</p>
 	{% endfor %}
 </div>
 {% endpartialdef %}

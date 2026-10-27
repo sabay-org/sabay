@@ -89,12 +89,12 @@ input:checked + .slider:before {
 
 /* Booking requests */
 .booking-req {
-	height: 600px;
 	width: 100%;
 	background: #262626;
   	border: 1px solid #383838;
   	border-radius: 12px;
 	margin-top: 2rem;
+	padding-bottom: 1.5rem;
 }
 .booking-req > * {
 	padding-inline: 1.5rem;

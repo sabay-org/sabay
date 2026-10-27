@@ -27,6 +27,7 @@ class JobPost(models.Model):
         choices=[
             ("open", "Open"),
             ("accepted", "Accepted"),
+            ("declined", "Declined"),
             ("completed", "Completed"),
             ("cancelled", "Cancelled"),
         ],

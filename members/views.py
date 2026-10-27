@@ -2,7 +2,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
 from django.http import JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from django.views.decorators.http import require_POST
 
 from booking.models import JobPost
@@ -83,12 +83,36 @@ def provider_dashboard(request):
     booking_requests = (
         JobPost.objects.select_related("seeker__user")
         .filter(status="open", provider=request.user.provider)
-        .order_by("-created_at")[:5]
+        .order_by("-created_at")
     )
     return render(
         request,
         "providers/dashboard.html",
         {
-            "booking_requests": booking_requests,
+            "booking_requests": booking_requests[:5],
         },
     )
+
+
+"""
+Handles if provider accepts a job or declines it
+"""
+
+@require_POST
+def job_response(request, job_id):
+    job = get_object_or_404(JobPost, pk=job_id)
+    seeker = job.seeker
+
+    action = request.POST.get("action")
+    print("POST data:", request.POST, "| action:", action)
+    if action == "accept":
+        job.status = "accepted"
+    elif action == "decline":
+        job.status = "declined"
+
+    job.save()
+    job.refresh_from_db()
+    print("Saved status:", repr(job.status))
+    return redirect("dashboard")
+        
+
