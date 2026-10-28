@@ -2,7 +2,8 @@ from django.contrib.auth import authenticate
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
 from django.http import JsonResponse
-from django.shortcuts import redirect, render, get_object_or_404
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from booking.models import JobPost
@@ -80,16 +81,26 @@ This function will allow providers to see their booking request.
 
 
 def provider_dashboard(request):
+
+    provider = getattr(request.user, "provider_profile", None)
+    now = timezone.now()
     booking_requests = (
         JobPost.objects.select_related("seeker__user")
-        .filter(status="open", provider=request.user.provider)
-        .order_by("-created_at")
+        .filter(status="open", provider=provider)
+        .order_by("-created_at")[:5]
+    )
+    upcoming_jobs = (
+        JobPost.objects.select_related("seeker__user")
+        .filter(status="accepted", provider=provider, schedule_start__gte=now)
+        .order_by("schedule_start")
     )
     return render(
         request,
         "providers/dashboard.html",
         {
-            "booking_requests": booking_requests[:5],
+            "provider": provider,
+            "booking_requests": booking_requests,
+            "upcoming_jobs": upcoming_jobs[:3],
         },
     )
 
@@ -98,10 +109,10 @@ def provider_dashboard(request):
 Handles if provider accepts a job or declines it
 """
 
+
 @require_POST
 def job_response(request, job_id):
     job = get_object_or_404(JobPost, pk=job_id)
-    seeker = job.seeker
 
     action = request.POST.get("action")
     print("POST data:", request.POST, "| action:", action)
@@ -114,5 +125,3 @@ def job_response(request, job_id):
     job.refresh_from_db()
     print("Saved status:", repr(job.status))
     return redirect("dashboard")
-        
-

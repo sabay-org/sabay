@@ -20,6 +20,8 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
+from members import views as member_views
+
 from . import views
 
 urlpatterns = [
@@ -27,7 +29,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("chat/", include("chat.urls")),
     path("members/", include("members.urls")),
-    path("dashboard/", views.dashboard, name="dashboard"),
+    path("dashboard/", member_views.provider_dashboard, name="dashboard"),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

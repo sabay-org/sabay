@@ -1,14 +1,15 @@
 # Create your tests here.
+from datetime import timedelta
+
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
-from datetime import timedelta
 
-
-from .models import Cert, Provider, ProviderCert, Specialty, Seeker
 from booking.models import JobPost
+
+from .models import Cert, Provider, ProviderCert, Seeker, Specialty
 
 User = get_user_model()
 
@@ -73,17 +74,18 @@ class AutofillCityTests(TestCase):
         response = self.client.get(reverse("members:city_suggestions"), {"page": 1})
         self.assertEqual(response.status_code, 200)
 
+
 class JobResponseTest(TestCase):
     def setUp(self):
         self.john = User.objects.create_user(username="john", password="password")
         self.provider = Provider.objects.create(user=self.john)
- 
+
         self.ana = User.objects.create_user(username="ana", password="password")
         self.seeker = Seeker.objects.create(user=self.ana)
- 
+
         self.job = self.make_job()
         self.url = reverse("members:job_response", args=[self.job.id])
- 
+
     def make_job(self, **overrides):
         start = timezone.now() + timedelta(days=1)
         data = {
@@ -93,11 +95,11 @@ class JobResponseTest(TestCase):
             "task_type": "Cleaning",
             "address": "123 Test St",
             "schedule_start": start,
-            "schedule_end": start + timedelta(hours=2)
+            "schedule_end": start + timedelta(hours=2),
         }
         data.update(overrides)
         return JobPost.objects.create(**data)
-    
+
     def test_status_to_accepted(self):
         self.client.login(username="john", password="password")
         response = self.client.post(self.url, {"action": "accept"})
@@ -108,9 +110,8 @@ class JobResponseTest(TestCase):
 
     def test_status_to_declined(self):
         self.client.login(username="john", password="password")
- 
+
         self.client.post(self.url, {"action": "decline"})
- 
+
         self.job.refresh_from_db()
         self.assertEqual(self.job.status, "declined")
-
