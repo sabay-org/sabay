@@ -11,8 +11,9 @@ def home(request):
 """ Requiring user to be logged in """
 
 
-@login_required(login_url=settings.LOGIN_URL)
+"""@login_required(login_url=settings.LOGIN_URL)"""
+@login_required
 def dashboard(request):
-    if hasattr(request.user, "provider"):
+    if hasattr(request.user, "provider_profile"):
         return redirect("members:provider_dashboard")
     return redirect("home.html")

@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
 
 from booking.models import JobPost
 
@@ -79,7 +80,7 @@ def toggle_availability(request):
 This function will allow providers to see their booking request.
 """
 
-
+@login_required
 def provider_dashboard(request):
 
     provider = getattr(request.user, "provider_profile", None)
@@ -109,7 +110,7 @@ def provider_dashboard(request):
 Handles if provider accepts a job or declines it
 """
 
-
+@login_required
 @require_POST
 def job_response(request, job_id):
     job = get_object_or_404(JobPost, pk=job_id)
