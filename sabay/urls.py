@@ -29,7 +29,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("chat/", include("chat.urls")),
     path("members/", include("members.urls")),
-    path("dashboard/", member_views.provider_dashboard, name="dashboard"),
+    path("dashboard/", member_views.dashboard, name="dashboard"),
     path("jobs/", include("booking.urls")),
 ]
 

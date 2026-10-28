@@ -1,11 +1,11 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
-from django.contrib.auth.decorators import login_required
 
 from booking.models import JobPost
 
@@ -28,7 +28,11 @@ def login(request):
 
         if user is not None:
             auth_login(request, user)
-            return redirect("dashboard")
+            if hasattr(request.user, "provider_profile"):
+                return redirect("dashboard")
+
+            elif hasattr(request.user, "seeker_profile"):
+                return redirect("home")
         else:
             error = "Invalid username or password"
 
@@ -80,35 +84,39 @@ def toggle_availability(request):
 This function will allow providers to see their booking request.
 """
 
-@login_required
-def provider_dashboard(request):
 
-    provider = getattr(request.user, "provider_profile", None)
-    now = timezone.now()
-    booking_requests = (
-        JobPost.objects.select_related("seeker__user")
-        .filter(status="open", provider=provider)
-        .order_by("-created_at")[:5]
-    )
-    upcoming_jobs = (
-        JobPost.objects.select_related("seeker__user")
-        .filter(status="accepted", provider=provider, schedule_start__gte=now)
-        .order_by("schedule_start")
-    )
-    return render(
-        request,
-        "providers/dashboard.html",
-        {
-            "provider": provider,
-            "booking_requests": booking_requests,
-            "upcoming_jobs": upcoming_jobs[:3],
-        },
-    )
+@login_required
+def dashboard(request):
+    if hasattr(request.user, "provider_profile"):
+        provider = getattr(request.user, "provider_profile", None)
+        now = timezone.now()
+        booking_requests = (
+            JobPost.objects.select_related("seeker__user")
+            .filter(status="open", provider=provider)
+            .order_by("-created_at")[:5]
+        )
+        upcoming_jobs = (
+            JobPost.objects.select_related("seeker__user")
+            .filter(status="accepted", provider=provider, schedule_start__gte=now)
+            .order_by("schedule_start")
+        )
+        return render(
+            request,
+            "providers/dashboard.html",
+            {
+                "provider": provider,
+                "booking_requests": booking_requests,
+                "upcoming_jobs": upcoming_jobs[:3],
+            },
+        )
+    elif hasattr(request.user, "seeker_profile"):
+        return redirect("home")
 
 
 """
 Handles if provider accepts a job or declines it
 """
+
 
 @login_required
 @require_POST

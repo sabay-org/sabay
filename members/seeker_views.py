@@ -9,7 +9,10 @@ from .models import Seeker
 def seeker_profile(request):
     seeker, _ = Seeker.objects.get_or_create(user=request.user)
     jobs = seeker.job_posts.order_by("-created_at")
-    return render(request, "members/seeker_profile.html", {"seeker":seeker, "jobs": jobs })
+    return render(
+        request, "members/seeker_profile.html", {"seeker": seeker, "jobs": jobs}
+    )
+
 
 @login_required
 def seeker_profile_edit(request):
