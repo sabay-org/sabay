@@ -100,6 +100,11 @@ def dashboard(request):
             .filter(status="accepted", provider=provider, schedule_start__gte=now)
             .order_by("schedule_start")
         )
+        open_jobs = (
+            JobPost.objects.select_related("seeker__user")
+            .filter(status="open")
+            .order_by("-created_at")
+        )
         return render(
             request,
             "providers/dashboard.html",
@@ -107,6 +112,7 @@ def dashboard(request):
                 "provider": provider,
                 "booking_requests": booking_requests,
                 "upcoming_jobs": upcoming_jobs[:3],
+                "open_jobs": open_jobs[:3]
             },
         )
     elif hasattr(request.user, "seeker_profile"):
