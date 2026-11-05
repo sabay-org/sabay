@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -23,7 +24,7 @@ SECRET_KEY = "django-insecure-dn66da_8b!9tl95v9c((1-%@3f(@fzn51b0fu4-q)l9a!l(#l7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["sabay.org", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["100.70.173.44", "sabay.org", "localhost", "127.0.0.1"]
 
 
 # Application definition
@@ -42,6 +43,7 @@ INSTALLED_APPS = [
     # project apps
     "chat",
     "members",
+    "booking",
 ]
 
 MIDDLEWARE = [
@@ -131,8 +133,14 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 # Global URLs incase url changes
 LOGIN_URL = "members:login"
 REDIRECT_URL_LOGIN = "home"
 REDIRECT_URL_LOGOUT = "home"
+
+# Local media storage (maybe for prod we can use a cdn??)
+MEDIA_URL = "media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")

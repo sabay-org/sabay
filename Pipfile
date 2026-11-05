@@ -8,7 +8,9 @@ channels = "*"
 channels_redis = "*"
 daphne = "*"
 django = "*"
+tzdata = "*"
 gunicorn = "*"
+pillow = "*"
 
 [dev-packages]
 ruff = "*"
