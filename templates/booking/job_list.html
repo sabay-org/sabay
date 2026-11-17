@@ -69,7 +69,7 @@
         </div>
         <div>
           <dt>Address</dt>
-          <dd>{% if job.status == "accepted" %}{{ job.address }}{% else %}Shared after confirmation{% endif %}</dd>
+	  <dd>{% if job.status == "accepted" %}{{ job.address }}, {{ job.city }}, {{job.state }} {{ job.zip_code }} {% else %} {{ job.city }}, {{ job.state }}{% endif %}</dd>
         </div>
       </dl>
 
@@ -87,6 +87,13 @@
       <div class="board-actions">
         {% if job.status == "accepted" %}
           <span class="board-action-status">You're booked for this job</span>
+        {% elif job.status == "open" and job.provider_id %}
+          {# Only this provider's direct booking requests reach the board #}
+          <form method="post" action="{% url 'members:job_response' job.pk %}">
+            {% csrf_token %}
+            <button type="submit" name="action" value="accept">Accept</button>
+            <button type="submit" name="action" value="decline">Decline</button>
+          </form>
         {% elif job.my_status == "pending" %}
           <span class="board-action-status">Requested &middot; waiting on seeker</span>
         {% elif job.my_status == "declined" %}
@@ -101,12 +108,18 @@
           <span class="board-action-status">No longer taking requests</span>
         {% endif %}
         {% if job.status == "accepted" %}
-          <form method="post" action="{% url 'members:complete_job' job.pk %}"
-                onsubmit="return confirm('Mark this job as complete?');">
-            {% csrf_token %}
-            <input type="hidden" name="next" value="{{ request.path }}">
-            <button type="submit">Complete</button>
-          </form>
+          {% if job.provider_completed %}
+            <span class="board-action-status">Waiting on seeker</span>
+          {% elif job.schedule_start <= now %}
+            <form method="post" action="{% url 'members:complete_job' job.pk %}"
+                  onsubmit="return confirm('Mark this job as complete?');">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.path }}?job={{ job.pk }}#job-detail">
+              <button type="submit">Complete</button>
+            </form>
+          {% else %}
+            <span class="board-action-status">Unable to complete until start date</span>
+          {% endif %}
         {% endif %}
       </div>
     </section>

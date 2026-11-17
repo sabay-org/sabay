@@ -56,6 +56,7 @@ urlpatterns = [
         "jobs/<int:job_id>/dismiss_request/",
         views.dismiss_request,
         name="dismiss_request",
+    ),
     path("signup/", views.signup, name="signup"),
     path(
         "signup/invite/<str:token>/",

@@ -1,7 +1,11 @@
+from datetime import date
+
 from django import forms
 from django.core.validators import FileExtensionValidator
 
+from .cities import CITIES
 from .models import Provider, ProviderCert, Seeker
+from .states import STATES
 
 
 class SeekerProfileForm(forms.ModelForm):
@@ -10,6 +14,20 @@ class SeekerProfileForm(forms.ModelForm):
         fields = ["photo", "date_of_birth", "location"]
         widgets = {"date_of_birth": forms.DateInput(attrs={"type": "date"})}
         labels = {"location": "Address"}
+
+    def clean_date_of_birth(self):
+        dob = self.cleaned_data.get("date_of_birth")
+        if dob is None:
+            return dob
+        today = date.today()
+        age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+        if dob > today:
+            raise forms.ValidationError("Date of birth can not be in the future")
+        if age < 18:
+            raise forms.ValidationError("You must be at least 18 to create an account")
+        if age > 110:
+            raise forms.ValidationError("please enter a valid date of birth")
+        return dob
 
 
 class ProviderPictureForm(forms.ModelForm):
@@ -34,11 +52,21 @@ class ProviderProfileForm(forms.ModelForm):
     so each widget points back to the form with the HTML form attribute.
     """
 
+    city = forms.ChoiceField(
+        choices=[("", "Select a city")] + [(c, c) for c in CITIES],
+        required=False,
+        widget=forms.Select(attrs={"form": "provider-profile-form"}),
+    )
+    state = forms.ChoiceField(
+        choices=[("", "Select a state")] + STATES,
+        required=False,
+        widget=forms.Select(attrs={"form": "provider-profile-form"}),
+    )
+
     class Meta:
         model = Provider
-        fields = ["city", "bio", "is_available", "specialties"]
+        fields = ["city", "state", "bio", "is_available", "specialties"]
         widgets = {
-            "city": forms.TextInput(attrs={"form": "provider-profile-form"}),
             "bio": forms.Textarea(
                 attrs={"form": "provider-profile-form", "class": "auto-grow"}
             ),

@@ -10,6 +10,7 @@ from members.models import Provider, Seeker
 from .models import JobPost, JobReq
 
 User = get_user_model()
+DT_FORMAT = "%Y-%m-%dT%H:%M"
 
 
 class JobBoardTests(TestCase):
@@ -60,7 +61,6 @@ class JobBoardTests(TestCase):
     def test_address_is_not_shown(self):
         response = self.client.get(self.url)
         self.assertNotContains(response, "123 Main St")
-        self.assertContains(response, "Shared after confirmation")
 
     def test_requested_job_shows_status_instead_of_button(self):
         JobReq.objects.create(job=self.newer, provider=self.provider)
@@ -156,3 +156,243 @@ class JobBoardTests(TestCase):
         response = self.client.get(self.url)
         self.assertIsNone(response.context["selected"])
         self.assertContains(response, "No jobs posted yet.")
+
+
+class SeekerEditCancelTests(TestCase):
+    def setUp(self):
+        self.seeker = Seeker.objects.create(
+            user=User.objects.create_user(username="ana", password="password")
+        )
+        self.other_seeker = Seeker.objects.create(
+            user=User.objects.create_user(username="bea", password="password")
+        )
+        self.provider = Provider.objects.create(
+            user=User.objects.create_user(username="john", password="password")
+        )
+        self.client.force_login(self.seeker.user)
+
+    def make_job(self, seeker=None, start=None, **overrides):
+        start = start or timezone.now() + timedelta(days=2)
+        fields = {
+            "seeker": seeker or self.seeker,
+            "task_type": "Pet Care",
+            "description": "Walk the dog",
+            "address": "1 Main St",
+            "zip_code": "97201",
+            "schedule_start": start,
+            "schedule_end": start + timedelta(hours=1),
+        }
+        fields.update(overrides)
+        return JobPost.objects.create(**fields)
+
+    def edit_data(self, job, **overrides):
+        start = timezone.localtime(job.schedule_start) + timedelta(days=1)
+        data = {
+            "task_type": "Meal Preparation",
+            "description": "Cook dinner",
+            "address": job.address,
+            "zip_code": job.zip_code,
+            "schedule_start": start.strftime("%Y-%m-%dT%H:%M"),
+            "schedule_end": (start + timedelta(hours=2)).strftime("%Y-%m-%dT%H:%M"),
+        }
+        data.update(overrides)
+        return data
+
+    def test_dashboard_shows_edit_and_cancel_for_open_job(self):
+        job = self.make_job()
+        response = self.client.get(reverse("members:seeker_dashboard"))
+        self.assertContains(response, reverse("booking:edit_job", args=[job.pk]))
+        self.assertContains(response, reverse("booking:cancel_job", args=[job.pk]))
+
+    def test_dashboard_shows_cancel_but_not_edit_for_upcoming_job(self):
+        job = self.make_job(provider=self.provider, status="accepted")
+        response = self.client.get(reverse("members:seeker_dashboard"))
+        self.assertContains(response, reverse("booking:cancel_job", args=[job.pk]))
+        self.assertNotContains(response, reverse("booking:edit_job", args=[job.pk]))
+
+    def test_edit_page_is_prefilled(self):
+        job = self.make_job()
+        response = self.client.get(reverse("booking:edit_job", args=[job.pk]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Edit job")
+        self.assertContains(response, "Walk the dog")
+
+    def test_edit_updates_job(self):
+        job = self.make_job()
+        response = self.client.post(
+            reverse("booking:edit_job", args=[job.pk]), self.edit_data(job)
+        )
+        self.assertRedirects(response, reverse("members:seeker_dashboard"))
+        job.refresh_from_db()
+        self.assertEqual(job.task_type, "Meal Preparation")
+        self.assertEqual(job.description, "Cook dinner")
+        self.assertEqual(job.seeker, self.seeker)
+
+    def test_edit_rejects_invalid_data(self):
+        job = self.make_job()
+        data = self.edit_data(job, schedule_end=self.edit_data(job)["schedule_start"])
+        response = self.client.post(reverse("booking:edit_job", args=[job.pk]), data)
+        self.assertEqual(response.status_code, 200)
+        job.refresh_from_db()
+        self.assertEqual(job.task_type, "Pet Care")
+
+    def test_cannot_edit_other_seekers_job(self):
+        job = self.make_job(seeker=self.other_seeker)
+        response = self.client.post(
+            reverse("booking:edit_job", args=[job.pk]), self.edit_data(job)
+        )
+        self.assertEqual(response.status_code, 404)
+        job.refresh_from_db()
+        self.assertEqual(job.task_type, "Pet Care")
+
+    def test_cannot_edit_accepted_job(self):
+        job = self.make_job(provider=self.provider, status="accepted")
+        response = self.client.get(reverse("booking:edit_job", args=[job.pk]))
+        self.assertEqual(response.status_code, 404)
+
+    def test_cancel_open_job_declines_pending_requests(self):
+        job = self.make_job()
+        req = JobReq.objects.create(job=job, provider=self.provider)
+        response = self.client.post(reverse("booking:cancel_job", args=[job.pk]))
+        self.assertRedirects(response, reverse("members:seeker_dashboard"))
+        job.refresh_from_db()
+        req.refresh_from_db()
+        self.assertEqual(job.status, "cancelled")
+        self.assertEqual(req.status, "declined")
+
+    def test_cancel_accepted_job(self):
+        job = self.make_job(provider=self.provider, status="accepted")
+        self.client.post(reverse("booking:cancel_job", args=[job.pk]))
+        job.refresh_from_db()
+        self.assertEqual(job.status, "cancelled")
+
+    def test_cancelled_job_leaves_dashboard(self):
+        job = self.make_job()
+        self.client.post(reverse("booking:cancel_job", args=[job.pk]))
+        response = self.client.get(reverse("members:seeker_dashboard"))
+        self.assertNotContains(response, reverse("booking:edit_job", args=[job.pk]))
+
+    def test_cancel_requires_post(self):
+        job = self.make_job()
+        response = self.client.get(reverse("booking:cancel_job", args=[job.pk]))
+        self.assertEqual(response.status_code, 405)
+        job.refresh_from_db()
+        self.assertEqual(job.status, "open")
+
+    def test_cannot_cancel_other_seekers_job(self):
+        job = self.make_job(seeker=self.other_seeker)
+        response = self.client.post(reverse("booking:cancel_job", args=[job.pk]))
+        self.assertEqual(response.status_code, 404)
+        job.refresh_from_db()
+        self.assertEqual(job.status, "open")
+
+    def test_cannot_cancel_started_job(self):
+        job = self.make_job(
+            provider=self.provider,
+            status="accepted",
+            start=timezone.now() - timedelta(hours=1),
+        )
+        response = self.client.post(reverse("booking:cancel_job", args=[job.pk]))
+        self.assertEqual(response.status_code, 404)
+        job.refresh_from_db()
+        self.assertEqual(job.status, "accepted")
+
+
+class ExpiredDeclinedCreateTests(TestCase):
+    def setUp(self):
+        self.seeker = Seeker.objects.create(
+            user=User.objects.create_user("sally", password="pw")
+        )
+        self.provider = Provider.objects.create(
+            user=User.objects.create_user("pat", password="pw")
+        )
+        self.other_provider = Provider.objects.create(
+            user=User.objects.create_user("quinn", password="pw")
+        )
+
+    def make_job(self, task_type="Errands", **kwargs):
+        start = kwargs.pop("start", timezone.now() + timedelta(days=2))
+        data = {
+            "seeker": self.seeker,
+            "task_type": task_type,
+            "description": "Details",
+            "address": "123 Main St",
+            "city": "Portland",
+            "state": "OR",
+            "zip_code": "97201",
+            "schedule_start": start,
+            "schedule_end": start + timedelta(hours=2),
+        }
+        data.update(kwargs)
+        return JobPost.objects.create(**data)
+
+    def form_data(self, start):
+        return {
+            "task_type": "Pet Care",
+            "description": "Walk my dog",
+            "schedule_start": start.strftime(DT_FORMAT),
+            "schedule_end": (start + timedelta(hours=2)).strftime(DT_FORMAT),
+            "city": "Portland",
+            "state": "OR",
+            "address": "123 Main St",
+            "zip_code": "97201",
+            "provider": "",
+        }
+
+    # create jobs must not allow a past date
+    def test_past_start_is_rejected(self):
+        self.client.force_login(self.seeker.user)
+        past = timezone.now() - timedelta(days=1)
+        response = self.client.post(reverse("booking:post_job"), self.form_data(past))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("schedule_start", response.context["form"].errors)
+        self.assertEqual(JobPost.objects.count(), 0)
+
+    def test_future_start_is_accepted(self):
+        # control: proves the form data is valid, so the test above fails for the right reason
+        self.client.force_login(self.seeker.user)
+        future = timezone.now() + timedelta(days=2)
+        response = self.client.post(reverse("booking:post_job"), self.form_data(future))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(JobPost.objects.count(), 1)
+
+    # expired jobs should not show up on dashboards
+    def test_expired_job_not_on_seeker_dashboard(self):
+        self.make_job(task_type="ZebraExpired", status="expired")
+        self.client.force_login(self.seeker.user)
+        response = self.client.get(reverse("members:seeker_dashboard"))
+        self.assertNotContains(response, "ZebraExpired")
+
+    def test_expired_job_not_on_provider_dashboard(self):
+        self.make_job(task_type="ZebraExpired", status="expired")
+        self.client.force_login(self.provider.user)
+        response = self.client.get(reverse("dashboard"))
+        self.assertNotContains(response, "ZebraExpired")
+
+    def test_expired_job_shows_expired_tag_on_my_jobs(self):
+        self.make_job(task_type="ZebraExpired", status="expired")
+        self.client.force_login(self.seeker.user)
+        response = self.client.get(reverse("booking:my_jobs"))
+        self.assertContains(response, "ZebraExpired")
+        self.assertContains(response, "Expired")
+
+    # declined jobs reopen and are available to other providers
+    def test_decline_reopens_job_and_clears_provider(self):
+        job = self.make_job(provider=self.provider)
+        self.client.force_login(self.provider.user)
+        self.client.post(
+            reverse("members:job_response", args=[job.pk]), {"action": "decline"}
+        )
+        job.refresh_from_db()
+        self.assertEqual(job.status, "open")
+        self.assertIsNone(job.provider)
+
+    def test_declined_job_visible_to_other_provider(self):
+        job = self.make_job(provider=self.provider)
+        self.client.force_login(self.provider.user)
+        self.client.post(
+            reverse("members:job_response", args=[job.pk]), {"action": "decline"}
+        )
+        self.client.force_login(self.other_provider.user)
+        response = self.client.get(reverse("booking:job_list"))
+        self.assertIn(job, response.context["jobs"])

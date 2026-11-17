@@ -1,9 +1,10 @@
+import secrets
 from datetime import date
+
 from django.conf import settings
 from django.db import models
-import secrets
-from django.db import models
 
+from .states import STATES
 
 # Create your models here.
 # below are the seeker and employee models.
@@ -61,13 +62,29 @@ class Provider(models.Model):
     specialties = models.ManyToManyField(
         Specialty, blank=True, verbose_name="Specialties"
     )
-    # Could we use the django-localflavor for the state?
-    # state
-    # Maybe we can add something to check for a valid city
     # another model??
     city = models.CharField(max_length=50, blank=True, verbose_name="City")
+    state = models.CharField(
+        max_length=2, choices=STATES, blank=True, verbose_name="State"
+    )
     is_available = models.BooleanField(default=False, verbose_name="Is Available")
     is_provider = models.BooleanField(default=True, verbose_name="Provider Status")
+
+    date_of_birth = models.DateField(null=True, blank=True)
+
+    @property
+    def age(self):
+        if not self.date_of_birth:
+            return None
+        today = date.today()
+        return (
+            today.year
+            - self.date_of_birth.year
+            - (
+                (today.month, today.day)
+                < (self.date_of_birth.month, self.date_of_birth.day)
+            )
+        )
 
     def __str__(self):
         return f"Provider: {self.user}"
@@ -101,6 +118,7 @@ class ProviderCert(models.Model):
 
     def __str__(self):
         return f"{self.cert} - {self.provider.user}"
+
 
 def generate_invite_token():
     return secrets.token_urlsafe(32)

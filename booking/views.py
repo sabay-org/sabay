@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.db.models import Count, OuterRef, Q, Subquery
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -26,6 +27,39 @@ def post_job(request):
     return render(request, "booking/post_job.html", {"form": form})
 
 
+def _editable_job(request, pk, statuses):
+    """A job owned by the logged-in seeker that has not started yet."""
+    return get_object_or_404(
+        JobPost,
+        pk=pk,
+        seeker__user=request.user,
+        status__in=statuses,
+        schedule_start__gt=timezone.now(),
+    )
+
+
+@login_required
+def edit_job(request, pk):
+    # Only open jobs can be edited; accepted jobs were agreed to by a provider
+    job = _editable_job(request, pk, ["open"])
+    form = JobPostForm(request.POST or None, instance=job)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        return redirect("members:seeker_dashboard")
+    return render(request, "booking/post_job.html", {"form": form, "job": job})
+
+
+@login_required
+@require_POST
+def cancel_job(request, pk):
+    job = _editable_job(request, pk, ["open", "accepted"])
+    with transaction.atomic():
+        job.status = "cancelled"
+        job.save(update_fields=["status"])
+        job.applications.filter(status="pending").update(status="declined")
+    return redirect("members:seeker_dashboard")
+
+
 @login_required
 def job_list(request):
     provider = getattr(request.user, "provider_profile", None)
@@ -38,13 +72,16 @@ def job_list(request):
         job=OuterRef("pk"), provider=provider
     ).values("status")[:1]
     # Show open jobs nobody has taken yet (including ones this provider has
-    # requested) plus jobs accepted by this provider. Jobs accepted by other
+    # requested), booking requests sent directly to this provider, plus jobs
+    # accepted by this provider. Jobs accepted by other
     # providers, expired jobs, and jobs this provider was not selected for
     # are hidden.
     jobs = list(
         JobPost.objects.select_related("seeker__user")
         .filter(
             Q(status="open", provider__isnull=True)
+            # Direct booking requests a seeker sent to this provider
+            | Q(status="open", provider=provider)
             | Q(status="accepted", provider=provider)
         )
         .exclude(applications__provider=provider, applications__status="declined")
@@ -134,5 +171,6 @@ def my_jobs(request):
             "selected": current,
             "has_selection": selected is not None,
             "pending_requests": pending_requests,
+            "now": now,
         },
     )

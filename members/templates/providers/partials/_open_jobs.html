@@ -9,7 +9,7 @@
 				{% if job.seeker.photo %}
 					<img src=" {{ job.seeker.photo.url }}" alt="seeker profile picture">
 				{% else %}
-					<p>No PFP</p>
+					<span class="small-profile-initials" aria-hidden="true">{% if job.seeker.user.first_name %}{{ job.seeker.user.first_name|first|upper }}{{ job.seeker.user.last_name|first|upper }}{% else %}{{ job.seeker.user.username|first|upper }}{% endif %}</span>
 				{% endif %}
 			</div>
 			<div class="job-info">
@@ -17,11 +17,13 @@
 					<span>{{ job.seeker.user.get_full_name }}</span>
 					<p>{{ job.task_type }} &middot; {{ duration }} </p>
 					<!-- https://docs.djangoproject.com/en/6.1/ref/templates/builtins/#date -->
-					<p>{{ job.schedule_start|date:"D, M j" }} &middot; {{ job.schedule_start|time:"g:i A" }} &middot; Address shared after confirmation</p> 
+					<p>{{ job.schedule_start|date:"D, M j" }} &middot; {{ job.schedule_start|time:"g:i A" }} &middot; {{job.city}}, {{job.state}}</p> 
 					{% endwith %}
 			</div>
 		</div>
 		<div class="options">
+
+			<a class="button" href="{% url 'booking:job_list' %}?job={{ job.pk }}#job-detail">Details</a>
 			{% if job.my_status == "pending" %}
 				<span class="job-req-status pending">Requested &middot; waiting on seeker</span>
 			{% elif job.my_status == "declined" %}

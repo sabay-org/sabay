@@ -1,7 +1,9 @@
+from django.core.validators import RegexValidator
 from django.db import models, transaction
 from django.utils import timezone
 
 from members.models import Provider, Seeker
+from members.states import STATES
 
 # Create your models here.
 ##model for job postings. different from location.seeker or location.employee'
@@ -20,6 +22,11 @@ class JobPostQuerySet(models.QuerySet):
 
 
 class JobPost(models.Model):
+    zip_validator = RegexValidator(
+        regex=r"^\d{5}(?:-\d{4})?$",
+        message="Enter a valid US ZIP code (e.g., 12345 or 12345-6789).",
+    )
+
     seeker = models.ForeignKey(
         Seeker, on_delete=models.CASCADE, related_name="job_posts"
     )
@@ -30,9 +37,15 @@ class JobPost(models.Model):
         on_delete=models.SET_NULL,
         related_name="accepted_jobs",
     )
+
+    city = models.CharField(max_length=50, blank=True, verbose_name="City")
+    state = models.CharField(
+        max_length=2, choices=STATES, blank=True, verbose_name="State"
+    )
     task_type = models.CharField(max_length=200)
     description = models.TextField()
     address = models.CharField(max_length=255)
+    zip_code = models.CharField(max_length=5, validators=[zip_validator])
     schedule_start = models.DateTimeField()
     schedule_end = models.DateTimeField()
     status = models.CharField(
@@ -47,11 +60,32 @@ class JobPost(models.Model):
         ],
         default="open",
     )
+    # Both sides must confirm before the job counts as completed
+    seeker_completed = models.BooleanField(default=False)
+    provider_completed = models.BooleanField(default=False)
     is_recurring = models.BooleanField(default=False)
     recurrence_rule = models.CharField(max_length=20, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     objects = JobPostQuerySet.as_manager()
+
+    def has_started(self, now=None):
+        return self.schedule_start <= (now or timezone.now())
+
+    def mark_complete(self, by):
+        """
+        Records that the seeker or provider ("seeker"/"provider") says the job
+        is done. The job only becomes completed once both have confirmed.
+        """
+        if by == "seeker":
+            self.seeker_completed = True
+        elif by == "provider":
+            self.provider_completed = True
+        else:
+            raise ValueError(f"Unknown party: {by!r}")
+        if self.seeker_completed and self.provider_completed:
+            self.status = "completed"
+        self.save(update_fields=["seeker_completed", "provider_completed", "status"])
 
 
 class JobReq(models.Model):

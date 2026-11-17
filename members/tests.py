@@ -2,19 +2,15 @@
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
+from django.core import mail
 from django.db import IntegrityError
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
-from django.contrib.auth.models import User
-from django.core import mail
-from django.test import TestCase, override_settings
-
-from .models import UserInvite
-
 
 from booking.models import JobPost, JobReq
 
-from .models import Cert, Provider, ProviderCert, Seeker, Specialty
+from .models import Cert, Provider, ProviderCert, Seeker, Specialty, UserInvite
 
 User = get_user_model()
 
@@ -119,7 +115,8 @@ class JobResponseTest(TestCase):
         self.client.post(self.url, {"action": "decline"})
 
         self.job.refresh_from_db()
-        self.assertEqual(self.job.status, "declined")
+        self.assertEqual(self.job.status, "open")
+        self.assertIsNone(self.job.provider)
 
 
 class CompleteJobTest(TestCase):
@@ -130,7 +127,8 @@ class CompleteJobTest(TestCase):
         self.ana = User.objects.create_user(username="ana", password="password")
         self.seeker = Seeker.objects.create(user=self.ana)
 
-        start = timezone.now() + timedelta(days=1)
+        # Job already started, so it can be marked complete
+        start = timezone.now() - timedelta(hours=1)
         self.job = JobPost.objects.create(
             seeker=self.seeker,
             provider=self.provider,
@@ -142,22 +140,47 @@ class CompleteJobTest(TestCase):
         )
         self.url = reverse("members:complete_job", args=[self.job.id])
 
-    def test_dashboard_shows_complete_button(self):
-        self.client.login(username="john", password="password")
-        response = self.client.get(reverse("dashboard"))
-
-        self.assertContains(response, self.url)
-
-    def test_complete_sets_status(self):
-        self.client.login(username="john", password="password")
+    def test_provider_alone_does_not_complete(self):
+        self.client.force_login(self.john)
         response = self.client.post(self.url)
 
         self.assertRedirects(response, reverse("dashboard"))
         self.job.refresh_from_db()
+        self.assertTrue(self.job.provider_completed)
+        self.assertEqual(self.job.status, "accepted")
+
+    def test_seeker_alone_does_not_complete(self):
+        self.client.force_login(self.ana)
+        self.client.post(self.url)
+
+        self.job.refresh_from_db()
+        self.assertTrue(self.job.seeker_completed)
+        self.assertEqual(self.job.status, "accepted")
+
+    def test_both_confirm_completes_job(self):
+        self.client.force_login(self.john)
+        self.client.post(self.url)
+        self.client.force_login(self.ana)
+        self.client.post(self.url)
+
+        self.job.refresh_from_db()
         self.assertEqual(self.job.status, "completed")
 
+    def test_cannot_complete_before_start(self):
+        self.job.schedule_start = timezone.now() + timedelta(days=1)
+        self.job.schedule_end = self.job.schedule_start + timedelta(hours=2)
+        self.job.save()
+        for user in (self.john, self.ana):
+            self.client.force_login(user)
+            response = self.client.post(self.url)
+            self.assertEqual(response.status_code, 404)
+
+        self.job.refresh_from_db()
+        self.assertFalse(self.job.provider_completed)
+        self.assertFalse(self.job.seeker_completed)
+
     def test_get_not_allowed(self):
-        self.client.login(username="john", password="password")
+        self.client.force_login(self.john)
         response = self.client.get(self.url)
 
         self.assertEqual(response.status_code, 405)
@@ -165,20 +188,36 @@ class CompleteJobTest(TestCase):
     def test_other_provider_cannot_complete(self):
         toby = User.objects.create_user(username="toby", password="password")
         Provider.objects.create(user=toby)
-        self.client.login(username="toby", password="password")
+        self.client.force_login(toby)
         response = self.client.post(self.url)
 
         self.assertEqual(response.status_code, 404)
         self.job.refresh_from_db()
-        self.assertEqual(self.job.status, "accepted")
+        self.assertFalse(self.job.provider_completed)
+
+    def test_other_seeker_cannot_complete(self):
+        bea = User.objects.create_user(username="bea", password="password")
+        Seeker.objects.create(user=bea)
+        self.client.force_login(bea)
+        response = self.client.post(self.url)
+
+        self.assertEqual(response.status_code, 404)
+        self.job.refresh_from_db()
+        self.assertFalse(self.job.seeker_completed)
 
     def test_open_job_cannot_be_completed(self):
         self.job.status = "open"
         self.job.save()
-        self.client.login(username="john", password="password")
+        self.client.force_login(self.john)
         response = self.client.post(self.url)
 
         self.assertEqual(response.status_code, 404)
+
+    def test_seeker_sees_complete_button_after_start(self):
+        self.client.force_login(self.ana)
+        response = self.client.get(reverse("booking:my_jobs"))
+
+        self.assertContains(response, self.url)
 
 
 class JobRequestButtonTest(TestCase):
@@ -230,6 +269,36 @@ class JobRequestButtonTest(TestCase):
         self.assertEqual(list(response.context["upcoming_jobs"]), [self.job])
 
 
+class SeekerDashboardUpcomingTest(TestCase):
+    def setUp(self):
+        self.ana = User.objects.create_user(username="ana", password="password")
+        self.seeker = Seeker.objects.create(user=self.ana)
+        self.provider = Provider.objects.create(
+            user=User.objects.create_user(username="john", password="password")
+        )
+
+    def make_job(self, start):
+        return JobPost.objects.create(
+            seeker=self.seeker,
+            provider=self.provider,
+            status="accepted",
+            task_type="Cleaning",
+            address="123 Test St",
+            schedule_start=start,
+            schedule_end=start + timedelta(hours=2),
+        )
+
+    def test_past_accepted_job_not_in_upcoming(self):
+        now = timezone.now()
+        self.make_job(now - timedelta(days=1))
+        future = self.make_job(now + timedelta(days=1))
+
+        self.client.login(username="ana", password="password")
+        response = self.client.get(reverse("members:seeker_dashboard"))
+
+        self.assertEqual(list(response.context["upcoming_jobs"]), [future])
+
+
 class LoginViewTests(TestCase):
     def setUp(self):
         self.url = reverse("members:login")
@@ -270,7 +339,9 @@ class LoginViewTests(TestCase):
         response = self.client.post(
             self.url, {"username": "sue", "password": "password"}
         )
-        self.assertRedirects(response, reverse("members:seeker_dashboard"), fetch_redirect_response=False)
+        self.assertRedirects(
+            response, reverse("members:seeker_dashboard"), fetch_redirect_response=False
+        )
 
 
 class SignupTests(TestCase):
@@ -295,9 +366,7 @@ class SignupTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertFalse(
-            User.objects.filter(username="testuser").exists()
-        )
+        self.assertFalse(User.objects.filter(username="testuser").exists())
 
 
 class UserInviteTests(TestCase):
@@ -355,12 +424,8 @@ class UserInviteTests(TestCase):
 
         user = User.objects.get(username="caretaker1")
 
-        self.assertTrue(
-            user.groups.filter(name="Caretaker").exists()
-        )
-        self.assertFalse(
-            user.groups.filter(name="Careseeker").exists()
-        )
+        self.assertTrue(user.groups.filter(name="Caretaker").exists())
+        self.assertFalse(user.groups.filter(name="Careseeker").exists())
 
     def test_careseeker_signup_assigns_careseeker_group(self):
         self.invite.role = UserInvite.Role.CARESEEKER
@@ -370,12 +435,8 @@ class UserInviteTests(TestCase):
 
         user = User.objects.get(username="careseeker1")
 
-        self.assertTrue(
-            user.groups.filter(name="Careseeker").exists()
-        )
-        self.assertFalse(
-            user.groups.filter(name="Caretaker").exists()
-        )
+        self.assertTrue(user.groups.filter(name="Careseeker").exists())
+        self.assertFalse(user.groups.filter(name="Caretaker").exists())
         self.assertRedirects(response, reverse("members:login"))
 
     def test_signup_marks_invite_used(self):
@@ -399,16 +460,11 @@ class UserInviteTests(TestCase):
         response = self.signup_with_invite("seconduser")
 
         self.assertContains(response, "Invalid Invitation")
-        self.assertFalse(
-            User.objects.filter(username="seconduser").exists()
-        )
+        self.assertFalse(User.objects.filter(username="seconduser").exists())
 
 
-@override_settings(
-    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"
-)
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 class UserInviteAdminTests(TestCase):
-
     def setUp(self):
         self.admin = User.objects.create_superuser(
             username="adminuser",
@@ -482,9 +538,7 @@ class UserInviteAdminTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
 
-        invite = UserInvite.objects.get(
-            email="newcaretaker@example.com"
-        )
+        invite = UserInvite.objects.get(email="newcaretaker@example.com")
 
         self.assertEqual(invite.role, UserInvite.Role.CARETAKER)
         self.assertFalse(invite.used)
@@ -514,9 +568,7 @@ class UserInviteAdminTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
 
-        invite = UserInvite.objects.get(
-            email="newcareseeker@example.com"
-        )
+        invite = UserInvite.objects.get(email="newcareseeker@example.com")
 
         self.assertEqual(invite.role, UserInvite.Role.CARESEEKER)
         self.assertEqual(len(mail.outbox), 1)
