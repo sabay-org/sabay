@@ -27,32 +27,6 @@ def login(request):
 
     return render(request, "auth_logic/login.html", {"error": error})
 
-def signup(request):
-    error = None
-
-    if request.method == "POST":
-        username = request.POST.get("username")
-        email = request.POST.get("email")
-        password = request.POST.get("password")
-        confirm_password = request.POST.get("confirm_password")
-
-        if not username or not email or not password or not confirm_password:
-            error = "All fields are required"
-        elif password != confirm_password:
-            error = "Passwords do not match"
-        elif User.objects.filter(username=username).exists():
-            error = "Username already exists"
-        elif User.objects.filter(email=email).exists():
-            error = "Email already exists"
-        else:
-            User.objects.create_user(
-                username=username,
-                email=email,
-                password=password
-            )
-            return redirect("members:login")
-
-    return render(request, "auth_logic/signup.html", {"error": error})
 
 def signup(request):
     return render(request, "auth_logic/signup.html")
