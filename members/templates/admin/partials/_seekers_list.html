@@ -1,0 +1,24 @@
+{% partialdef seeker-list %}
+{% for seeker in seekers %}
+<div class="admin-card">
+	<div class="ls-card">
+		<div class="img-container">
+			{% if seeker.photo %}
+				<img src="{{ seeker.photo.url }}" alt="{{ seeker.user.get_full_name|default:seeker.user.username }} profile picture">
+			{% else %}
+				<span class="small-profile-initials" aria-hidden="true">{% if seeker.user.first_name %}{{ seeker.user.first_name|first|upper }}{{ seeker.user.last_name|first|upper }}{% else %}{{ seeker.user.username|first|upper }}{% endif %}</span>
+			{% endif %}
+		</div>
+		<div class="admin-card-info">
+			<span>{{ seeker.user.get_full_name|default:seeker.user.username }}</span>
+			<p>{{ seeker.location|default:"No location" }}</p>
+		</div>
+	</div>
+	<div class="options">
+		<a class="button" href="{% url 'admin:members_seeker_change' seeker.pk %}">Manage</a>
+	</div>
+</div>
+{% empty %}
+<p>No seekers yet.</p>
+{% endfor %}
+{% endpartialdef %}

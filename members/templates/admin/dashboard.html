@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% load static %} 
+
+{% block page_heading %}Dashboard{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'staff/css/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+	<div class="greeting" >
+		<h1><span id="greeting">Hello</span>, {{ user.first_name }}</h1>
+	</div>
+	<div class="dash-main-container">
+		<div class="admin-section-container">
+			<div class="admin-container">
+				<div class="admin-header">
+					<h2>Providers</h2>
+				</div>
+				<div class="list-cards">
+					{% include "admin/partials/_providers_list.html#provider-list" %}
+				</div>
+
+			</div>
+			<div class="admin-container">
+				<div class="admin-header">
+					<h2>Seekers</h2>
+				</div>
+				<div class="list-cards">
+					{% include "admin/partials/_seekers_list.html#seeker-list" %}
+				</div>
+
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}
+

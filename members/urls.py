@@ -29,6 +29,7 @@ urlpatterns = [
     path("profile/", seeker_views.seeker_profile, name="seeker_profile"),
     path("profile/edit/", seeker_views.seeker_profile_edit, name="seeker_profile_edit"),
     path("dashboard/", seeker_views.seeker_dashboard, name="seeker_dashboard"),
+    path("admin-dashboard/", views.admin_dashboard, name="admin_dashboard"),
     path("provider-edit", views.provider_profile_edit, name="provider_profile_edit"),
     path(
         "provider-edit/picture/upload/",

@@ -303,19 +303,25 @@ class LoginViewTests(TestCase):
     def setUp(self):
         self.url = reverse("members:login")
 
-    def test_staff_user_is_rejected(self):
-        User.objects.create_user(username="staff", password="password", is_staff=True)
+    def test_staff_user_logs_in_and_goes_to_admin(self):
+        user = User.objects.create_user(
+            username="staff", password="password", is_staff=True
+        )
         response = self.client.post(
             self.url, {"username": "staff", "password": "password"}
         )
-        self.assertEqual(response.status_code, 403)
+        self.assertRedirects(
+            response, reverse("admin:index"), fetch_redirect_response=False
+        )
+        self.assertEqual(int(self.client.session["_auth_user_id"]), user.pk)
 
-    def test_superuser_is_rejected(self):
-        User.objects.create_superuser(username="admin", password="password")
+    def test_superuser_logs_in_and_goes_to_admin(self):
+        user = User.objects.create_superuser(username="admin", password="password")
         response = self.client.post(
             self.url, {"username": "admin", "password": "password"}
         )
-        self.assertEqual(response.status_code, 403)
+        self.assertRedirects(response, reverse("admin:index"))
+        self.assertEqual(int(self.client.session["_auth_user_id"]), user.pk)
 
     def test_wrong_password_for_staff_shows_generic_error(self):
         User.objects.create_user(username="staff", password="password", is_staff=True)
@@ -577,3 +583,53 @@ class UserInviteAdminTests(TestCase):
             ["newcareseeker@example.com"],
         )
         self.assertIn("Careseeker", mail.outbox[0].body)
+
+
+class AdminDashboardTests(TestCase):
+    def setUp(self):
+        self.url = reverse("members:admin_dashboard")
+        provider_user = User.objects.create_user(
+            username="pat", password="password", first_name="Pat", last_name="Lee"
+        )
+        self.provider = Provider.objects.create(
+            user=provider_user, city="Portland", state="OR"
+        )
+        seeker_user = User.objects.create_user(
+            username="sam", password="password", first_name="Sam", last_name="Kim"
+        )
+        self.seeker = Seeker.objects.create(user=seeker_user, location="Salem, OR")
+
+    def test_staff_sees_providers_and_seekers(self):
+        staff = User.objects.create_user(
+            username="staff", password="password", is_staff=True
+        )
+        self.client.force_login(staff)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Pat Lee")
+        self.assertContains(response, "Portland, OR")
+        self.assertContains(
+            response, reverse("admin:members_provider_change", args=[self.provider.pk])
+        )
+        self.assertContains(response, "Sam Kim")
+        self.assertContains(response, "Salem, OR")
+        self.assertContains(
+            response, reverse("admin:members_seeker_change", args=[self.seeker.pk])
+        )
+
+    def test_empty_lists_show_messages(self):
+        Provider.objects.all().delete()
+        Seeker.objects.all().delete()
+        staff = User.objects.create_user(
+            username="staff", password="password", is_staff=True
+        )
+        self.client.force_login(staff)
+        response = self.client.get(self.url)
+        self.assertContains(response, "No providers yet.")
+        self.assertContains(response, "No seekers yet.")
+
+    def test_non_staff_is_redirected_to_admin_login(self):
+        self.client.force_login(self.provider.user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("admin:login"), response.url)

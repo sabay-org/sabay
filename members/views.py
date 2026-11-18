@@ -1,3 +1,4 @@
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import authenticate
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
@@ -5,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group, User
 from django.db import transaction
 from django.db.models import OuterRef, Subquery
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -16,7 +17,7 @@ from booking.models import JobPost, JobReq
 
 from .cities import CITIES
 from .forms import ProviderCertForm, ProviderPictureForm, ProviderProfileForm
-from .models import UserInvite
+from .models import Provider, Seeker, UserInvite
 
 """
 Decided to use a custom login view
@@ -35,14 +36,11 @@ def login(request):
         user = authenticate(request, username=username, password=password)
         if user is None:
             error = "Invalid username or password"
-        elif user.is_staff or user.is_superuser:
-            return HttpResponse(
-                "Forbidden: use admin login",
-                status=403,
-                content_type="text/plain",
-            )
         else:
             auth_login(request, user)
+            # Admins share the normal login and land in the admin site
+            if user.is_staff or user.is_superuser:
+                return redirect("members:admin_dashboard")
             if hasattr(user, "provider_profile"):
                 return redirect("dashboard")
             return redirect("members:seeker_dashboard")
@@ -148,10 +146,29 @@ Anyone who is not a provider is sent to the seeker dashboard.
 """
 
 
+@staff_member_required
+def admin_dashboard(request):
+    providers = Provider.objects.select_related("user").order_by(
+        "user__first_name", "user__last_name", "user__username"
+    )
+    seekers = Seeker.objects.select_related("user").order_by(
+        "user__first_name", "user__last_name", "user__username"
+    )
+    return render(
+        request,
+        "admin/dashboard.html",
+        {"providers": providers, "seekers": seekers},
+    )
+
+
 @login_required
 def dashboard(request):
+    admin = getattr(request.user, "is_staff")
     provider = getattr(request.user, "provider_profile", None)
-    if provider is None:
+    if admin:
+                return redirect("members:admin_dashboard")
+
+    elif provider is None:
         return redirect("members:seeker_dashboard")
 
     now = timezone.now()
