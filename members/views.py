@@ -5,7 +5,7 @@ from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group, User
 from django.db import transaction
-from django.db.models import OuterRef, Subquery
+from django.db.models import Count, OuterRef, Subquery
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -161,14 +161,54 @@ def admin_dashboard(request):
     )
 
 
+# Job statuses an admin can filter by on the jobs page, in tab order
+ADMIN_JOB_STATUSES = [
+    ("open", "Open"),
+    ("accepted", "Accepted"),
+    ("completed", "Completed"),
+    ("cancelled", "Cancelled"),
+]
+
+
+@staff_member_required
+def admin_jobs(request):
+    """
+    Lets admins see every job by status. Defaults to open jobs; an unknown
+    status falls back to open as well.
+    """
+    JobPost.objects.expire_past_due()
+    valid = {value for value, _ in ADMIN_JOB_STATUSES}
+    status = request.GET.get("status", "open")
+    if status not in valid:
+        status = "open"
+    jobs = (
+        JobPost.objects.select_related("seeker__user", "provider__user")
+        .filter(status=status)
+        .order_by("-schedule_start")
+    )
+    counts = dict(
+        JobPost.objects.filter(status__in=valid)
+        .values_list("status")
+        .annotate(n=Count("pk"))
+    )
+    tabs = [
+        {"value": value, "label": label, "count": counts.get(value, 0)}
+        for value, label in ADMIN_JOB_STATUSES
+    ]
+    return render(
+        request,
+        "admin/jobs.html",
+        {"jobs": jobs, "status": status, "tabs": tabs},
+    )
+
+
 @login_required
 def dashboard(request):
-    admin = getattr(request.user, "is_staff")
-    provider = getattr(request.user, "provider_profile", None)
-    if admin:
-                return redirect("members:admin_dashboard")
+    if request.user.is_staff:
+        return redirect("members:admin_dashboard")
 
-    elif provider is None:
+    provider = getattr(request.user, "provider_profile", None)
+    if provider is None:
         return redirect("members:seeker_dashboard")
 
     now = timezone.now()

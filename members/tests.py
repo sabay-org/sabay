@@ -310,9 +310,7 @@ class LoginViewTests(TestCase):
         response = self.client.post(
             self.url, {"username": "staff", "password": "password"}
         )
-        self.assertRedirects(
-            response, reverse("admin:index"), fetch_redirect_response=False
-        )
+        self.assertRedirects(response, reverse("members:admin_dashboard"))
         self.assertEqual(int(self.client.session["_auth_user_id"]), user.pk)
 
     def test_superuser_logs_in_and_goes_to_admin(self):
@@ -320,7 +318,7 @@ class LoginViewTests(TestCase):
         response = self.client.post(
             self.url, {"username": "admin", "password": "password"}
         )
-        self.assertRedirects(response, reverse("admin:index"))
+        self.assertRedirects(response, reverse("members:admin_dashboard"))
         self.assertEqual(int(self.client.session["_auth_user_id"]), user.pk)
 
     def test_wrong_password_for_staff_shows_generic_error(self):
@@ -633,3 +631,103 @@ class AdminDashboardTests(TestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 302)
         self.assertIn(reverse("admin:login"), response.url)
+
+
+class AdminJobsTests(TestCase):
+    def setUp(self):
+        self.url = reverse("members:admin_jobs")
+        self.staff = User.objects.create_user(
+            username="staff", password="password", is_staff=True
+        )
+        seeker_user = User.objects.create_user(
+            username="sam", password="password", first_name="Sam", last_name="Kim"
+        )
+        self.seeker = Seeker.objects.create(user=seeker_user)
+        provider_user = User.objects.create_user(
+            username="pat", password="password", first_name="Pat", last_name="Lee"
+        )
+        self.provider = Provider.objects.create(user=provider_user)
+        start = timezone.now() + timedelta(days=1)
+        self.jobs = {}
+        for status in ["open", "accepted", "completed", "cancelled"]:
+            self.jobs[status] = JobPost.objects.create(
+                seeker=self.seeker,
+                provider=None if status == "open" else self.provider,
+                status=status,
+                task_type=f"{status} task",
+                address="123 Test St",
+                schedule_start=start,
+                schedule_end=start + timedelta(hours=2),
+            )
+
+    def test_non_staff_cannot_view(self):
+        self.client.force_login(self.seeker.user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.url.startswith(reverse("admin:login")))
+
+    def test_defaults_to_open_jobs(self):
+        self.client.force_login(self.staff)
+        response = self.client.get(self.url)
+        self.assertEqual(response.context["status"], "open")
+        self.assertEqual(list(response.context["jobs"]), [self.jobs["open"]])
+
+    def test_each_status_filter(self):
+        self.client.force_login(self.staff)
+        for status, job in self.jobs.items():
+            with self.subTest(status=status):
+                response = self.client.get(self.url, {"status": status})
+                self.assertEqual(list(response.context["jobs"]), [job])
+                self.assertContains(
+                    response, reverse("admin:booking_jobpost_change", args=[job.pk])
+                )
+
+    def test_unknown_status_falls_back_to_open(self):
+        self.client.force_login(self.staff)
+        response = self.client.get(self.url, {"status": "expired"})
+        self.assertEqual(response.context["status"], "open")
+
+    def test_tab_counts(self):
+        self.client.force_login(self.staff)
+        response = self.client.get(self.url)
+        counts = {tab["value"]: tab["count"] for tab in response.context["tabs"]}
+        self.assertEqual(
+            counts, {"open": 1, "accepted": 1, "completed": 1, "cancelled": 1}
+        )
+
+
+class NavTests(TestCase):
+    def test_staff_nav(self):
+        staff = User.objects.create_user(
+            username="staff", password="password", is_staff=True
+        )
+        self.client.force_login(staff)
+        response = self.client.get(reverse("members:admin_dashboard"))
+        self.assertContains(response, reverse("members:admin_jobs"))
+        self.assertContains(response, reverse("members:logout"))
+        self.assertNotContains(response, reverse("members:login"))
+        self.assertNotContains(response, reverse("members:signup"))
+
+    def test_provider_nav(self):
+        user = User.objects.create_user(username="pat", password="password")
+        Provider.objects.create(user=user)
+        self.client.force_login(user)
+        response = self.client.get(reverse("dashboard"))
+        self.assertContains(response, reverse("booking:job_list"))
+        self.assertContains(response, reverse("chat:index"))
+        self.assertContains(response, reverse("members:logout"))
+        self.assertNotContains(response, reverse("members:admin_jobs"))
+
+    def test_seeker_nav(self):
+        user = User.objects.create_user(username="sam", password="password")
+        Seeker.objects.create(user=user)
+        self.client.force_login(user)
+        response = self.client.get(reverse("members:seeker_dashboard"))
+        self.assertContains(response, reverse("booking:my_jobs"))
+        self.assertContains(response, reverse("members:logout"))
+        self.assertNotContains(response, reverse("members:admin_jobs"))
+
+    def test_anonymous_nav(self):
+        response = self.client.get(reverse("home"))
+        self.assertContains(response, reverse("members:login"))
+        self.assertNotContains(response, reverse("members:logout"))

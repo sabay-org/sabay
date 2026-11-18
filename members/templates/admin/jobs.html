@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}Jobs · Sabay{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'staff/css/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+	<div class="greeting">
+		<h1>Jobs</h1>
+	</div>
+	<div class="status-tabs" role="navigation" aria-label="Filter jobs by status">
+		{% for tab in tabs %}
+			<a class="status-tab{% if tab.value == status %} active{% endif %}"
+			   href="?status={{ tab.value }}"
+			   {% if tab.value == status %}aria-current="page"{% endif %}>
+				{{ tab.label }} <span class="tab-count">{{ tab.count }}</span>
+			</a>
+		{% endfor %}
+	</div>
+	<div class="admin-container jobs-container">
+		<div class="jobs-list">
+			{% for job in jobs %}
+			<div class="job-card">
+				<div class="job-info">
+					<span>{{ job.task_type }}</span>
+					<p>{{ job.schedule_start|date:"D, M j, Y" }} &middot; {{ job.schedule_start|time:"g:i A" }}–{{ job.schedule_end|time:"g:i A" }}</p>
+					<p>{% if job.city %}{{ job.city }}{% if job.state %}, {{ job.state }}{% endif %}{% else %}No location{% endif %}</p>
+					<p>Seeker: {{ job.seeker.user.get_full_name|default:job.seeker.user.username }}</p>
+					<p>Provider: {% if job.provider %}{{ job.provider.user.get_full_name|default:job.provider.user.username }}{% else %}None yet{% endif %}</p>
+				</div>
+				<div class="options">
+					<a class="button" href="{% url 'admin:booking_jobpost_change' job.pk %}">Manage</a>
+				</div>
+			</div>
+			{% empty %}
+			<p>No {{ status }} jobs.</p>
+			{% endfor %}
+		</div>
+	</div>
+</div>
+{% endblock %}

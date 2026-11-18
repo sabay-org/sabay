@@ -165,3 +165,96 @@
 	gap: 0.75rem;
 	flex-shrink: 0;
 }
+
+.status-tabs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	width: 100%;
+}
+
+.status-tab {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	padding: 0.5rem 1rem;
+	border: var(--border-width) solid var(--border);
+	border-radius: 999px;
+	background: var(--bg);
+	color: var(--text);
+	text-decoration: none;
+	font-weight: bold;
+}
+
+.status-tab.active {
+	background: var(--accent);
+	border-color: var(--accent);
+	color: var(--accent-text, var(--bg));
+}
+
+.tab-count {
+	font-weight: normal;
+}
+
+/* Admin jobs page: cards styled to match the provider "Upcoming Jobs" list */
+.jobs-container {
+	padding-top: 1rem;
+}
+
+.status-tabs {
+	margin-top: 1rem;
+}
+
+.job-card {
+	width: 100%;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75rem;
+	margin-top: 1rem;
+	padding: 1rem;
+	background: var(--bg);
+	border: var(--border-width) solid var(--border);
+	border-radius: 12px;
+}
+
+.job-info p {
+	margin: 0;
+}
+
+.job-info span {
+	font-weight: bold;
+}
+
+.options button,
+.options .button {
+	margin-bottom: 0;
+}
+
+.options a.button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+@media (max-width: 950px) {
+	.job-card {
+		flex-direction: column;
+		align-items: normal;
+	}
+}
+
+@media (max-width: 500px) {
+	.job-card {
+		padding: 0.85rem;
+	}
+	.options {
+		flex-direction: column;
+		width: 100%;
+	}
+	.options button,
+	.options .button {
+		width: 100%;
+	}
+}
