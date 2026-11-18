@@ -15,16 +15,15 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-dn66da_8b!9tl95v9c((1-%@3f(@fzn51b0fu4-q)l9a!l(#l7"
+SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() == "true"
 
-ALLOWED_HOSTS = ["100.70.173.44", "100.80.147.45", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["sabay.org", "localhost", "127.0.0.1"]
 
 
 # Application definition
@@ -43,6 +42,7 @@ INSTALLED_APPS = [
     # project apps
     "chat",
     "members",
+    "booking",
 ]
 
 MIDDLEWARE = [
@@ -77,12 +77,9 @@ ASGI_APPLICATION = "sabay.asgi.application"
 
 CHANNEL_LAYERS = {
     "default": {
-        # "BACKEND": "channels_redis.core.RedisChannelLayer",
         "BACKEND": "channels.layers.InMemoryChannelLayer",
-        "CONFIG": {
-            # "hosts": [{"address": "redis://redis:6379", "socket_timeout": None}],
-        },
-    },
+        "CONFIG": {},
+    }
 }
 
 # Database
@@ -123,7 +120,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "America/Los_Angeles"
 
 USE_I18N = True
 
@@ -135,6 +132,8 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 # Global URLs incase url changes
 LOGIN_URL = "members:login"
