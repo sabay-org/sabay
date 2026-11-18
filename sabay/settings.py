@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -143,6 +143,26 @@ REDIRECT_URL_LOGOUT = "home"
 
 # Development email configuration
 # Prints emails to the terminal instead of actually sending them.
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+#EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
-DEFAULT_FROM_EMAIL = "noreply@sabay.local"
+# Email configuration
+# Default to console email for local development
+EMAIL_BACKEND = os.environ.get(
+    "EMAIL_BACKEND",
+    "django.core.mail.backends.console.EmailBackend",
+)
+
+# Resend SMTP configuration
+EMAIL_HOST = "smtp.resend.com"
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
+
+EMAIL_HOST_USER = "resend"
+EMAIL_HOST_PASSWORD = os.environ.get("RESEND_API_KEY", "")
+
+DEFAULT_FROM_EMAIL = os.environ.get(
+    "DEFAULT_FROM_EMAIL",
+    "Sabay <noreply@sabay.org>",
+)
+
+#DEFAULT_FROM_EMAIL = "noreply@sabay.local"
