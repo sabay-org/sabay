@@ -23,7 +23,7 @@ SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() == "true"
 
-ALLOWED_HOSTS = ["sabay.org", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["100.70.173.44", "sabay.org", "localhost", "127.0.0.1"]
 
 
 # Application definition
