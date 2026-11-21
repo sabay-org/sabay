@@ -11,13 +11,17 @@
         <i>{{ room.id|stringformat:"s"|slice:":8" }}</i><br/>
         -->
 
-        {% for member in room.roommember_set.all %}
+        {% for member in room.other_members %}
           {{ member.user.username }}{% if not forloop.last %}, {% endif %}
         {% endfor %}
       </span>
 
-      <span class="conversation-preview">
+      <span class="conversation-date">
         {{ room.last_message_at }}
+      </span>
+
+      <span class="conversation-preview-message">
+        {{ room.last_message }}
       </span>
 
     </li>
