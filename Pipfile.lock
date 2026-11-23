@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "5466cca0ef9f1a96425c1dd31219be14762ce78b4f880aded54a63a6c40e20a9"
+            "sha256": "79eef4e84dbbfcdae9d238cef8f87fd1d67a6daab873fc57160865c807a4e545"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -869,11 +869,11 @@
         },
         "certifi": {
             "hashes": [
-                "sha256:a9895e6e2758b371e0545e321a3a8fd1fcfd9829ada8824a936dfb16aaaf36cd",
-                "sha256:e9b54de76e530bb6cf0ccd036787103acb58fd42ba930ea8bf948ddbaa2f61d1"
+                "sha256:7422df25243767b9877031a2248cb14d09ddac9beee846f4cef3d5c9191d488f",
+                "sha256:af1cb240a8133f105aa52684a3a3258339d7f2fd0bd4e2812698ff5cf5588c4e"
             ],
             "markers": "python_version >= '3.7'",
-            "version": "==2026.10.23"
+            "version": "==2026.11.20"
         },
         "h11": {
             "hashes": [
@@ -905,7 +905,7 @@
                 "sha256:2725bd0a9925919b9b51739eea5f9e2bae91e83288108a9ad338b2e3a4435ee5",
                 "sha256:3f8804571ebe159c380ac6de37643bb4685970655d3bba243530d6558b799aa0"
             ],
-            "markers": "python_version >= '2.7' and python_version != '3.0' and python_version != '3.1' and python_version != '3.2' and python_version != '3.3'",
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "version": "==1.7.1"
         },
         "ruff": {
@@ -935,12 +935,12 @@
         },
         "selenium": {
             "hashes": [
-                "sha256:40f423c598cc85390c403ef626c9d3457c1ae834d4cf1f38637ebba3cb6f0d7a",
-                "sha256:caa2860d486f71cdeb21fee3248c2f604bba590120dfb4d3d18c4d7cf97c6f1f"
+                "sha256:efb45b129cbd7f46da99c82e7d327978bda29ed987223465c341f96404a86a2c",
+                "sha256:f0906a56324f5dfb19b87971a7cfd2162ea473e5afa25ee458aaa5a3816b98ac"
             ],
             "index": "pypi",
             "markers": "python_version >= '3.10'",
-            "version": "==4.52.0"
+            "version": "==4.53.0"
         },
         "sniffio": {
             "hashes": [
