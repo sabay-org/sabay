@@ -6,15 +6,16 @@ import members.models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('members', '0001_initial'),
+        ("members", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='caretakerinvite',
-            name='token',
-            field=models.CharField(default=members.models.generate_invite_token, max_length=64, unique=True),
+            model_name="caretakerinvite",
+            name="token",
+            field=models.CharField(
+                default=members.models.generate_invite_token, max_length=64, unique=True
+            ),
         ),
     ]

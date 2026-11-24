@@ -1,11 +1,12 @@
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import authenticate
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group, User
 from django.db import transaction
-from django.db.models import OuterRef, Subquery
-from django.http import HttpResponse, JsonResponse
+from django.db.models import Count, OuterRef, Subquery
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -16,7 +17,7 @@ from booking.models import JobPost, JobReq
 
 from .cities import CITIES
 from .forms import ProviderCertForm, ProviderPictureForm, ProviderProfileForm
-from .models import UserInvite
+from .models import Provider, Seeker, UserInvite
 
 """
 Decided to use a custom login view
@@ -35,14 +36,11 @@ def login(request):
         user = authenticate(request, username=username, password=password)
         if user is None:
             error = "Invalid username or password"
-        elif user.is_staff or user.is_superuser:
-            return HttpResponse(
-                "Forbidden: use admin login",
-                status=403,
-                content_type="text/plain",
-            )
         else:
             auth_login(request, user)
+            # Admins share the normal login and land in the admin site
+            if user.is_staff or user.is_superuser:
+                return redirect("members:admin_dashboard")
             if hasattr(user, "provider_profile"):
                 return redirect("dashboard")
             return redirect("members:seeker_dashboard")
@@ -150,8 +148,67 @@ Anyone who is not a provider is sent to the seeker dashboard.
 """
 
 
+@staff_member_required
+def admin_dashboard(request):
+    providers = Provider.objects.select_related("user").order_by(
+        "user__first_name", "user__last_name", "user__username"
+    )
+    seekers = Seeker.objects.select_related("user").order_by(
+        "user__first_name", "user__last_name", "user__username"
+    )
+    return render(
+        request,
+        "admin/dashboard.html",
+        {"providers": providers, "seekers": seekers},
+    )
+
+
+# Job statuses an admin can filter by on the jobs page, in tab order
+ADMIN_JOB_STATUSES = [
+    ("open", "Open"),
+    ("accepted", "Accepted"),
+    ("completed", "Completed"),
+    ("cancelled", "Cancelled"),
+]
+
+
+@staff_member_required
+def admin_jobs(request):
+    """
+    Lets admins see every job by status. Defaults to open jobs; an unknown
+    status falls back to open as well.
+    """
+    JobPost.objects.expire_past_due()
+    valid = {value for value, _ in ADMIN_JOB_STATUSES}
+    status = request.GET.get("status", "open")
+    if status not in valid:
+        status = "open"
+    jobs = (
+        JobPost.objects.select_related("seeker__user", "provider__user")
+        .filter(status=status)
+        .order_by("-schedule_start")
+    )
+    counts = dict(
+        JobPost.objects.filter(status__in=valid)
+        .values_list("status")
+        .annotate(n=Count("pk"))
+    )
+    tabs = [
+        {"value": value, "label": label, "count": counts.get(value, 0)}
+        for value, label in ADMIN_JOB_STATUSES
+    ]
+    return render(
+        request,
+        "admin/jobs.html",
+        {"jobs": jobs, "status": status, "tabs": tabs},
+    )
+
+
 @login_required
 def dashboard(request):
+    if request.user.is_staff:
+        return redirect("members:admin_dashboard")
+
     provider = getattr(request.user, "provider_profile", None)
     if provider is None:
         return redirect("members:seeker_dashboard")

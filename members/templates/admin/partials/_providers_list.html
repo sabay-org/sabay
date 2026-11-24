@@ -1,0 +1,25 @@
+{% partialdef provider-list %}
+{% for provider in providers %}
+<div class="admin-card">
+	<div class="ls-card">
+		<div class="img-container">
+			{% if provider.profilePicture %}
+				<img src="{{ provider.profilePicture.url }}" alt="{{ provider.user.get_full_name|default:provider.user.username }} profile picture">
+			{% else %}
+				<span class="small-profile-initials" aria-hidden="true">{% if provider.user.first_name %}{{ provider.user.first_name|first|upper }}{{ provider.user.last_name|first|upper }}{% else %}{{ provider.user.username|first|upper }}{% endif %}</span>
+			{% endif %}
+		</div>
+		<div class="admin-card-info">
+			<span>{{ provider.user.get_full_name|default:provider.user.username }}</span>
+			<p>{% if provider.city %}{{ provider.city }}{% if provider.state %}, {{ provider.state }}{% endif %}{% else %}No location{% endif %}</p>
+			<p>{% if provider.is_available %}Available{% else %}Unavailable{% endif %}</p>
+		</div>
+	</div>
+	<div class="options">
+		<a class="button" href="{% url 'admin:members_provider_change' provider.pk %}">Manage</a>
+	</div>
+</div>
+{% empty %}
+<p>No providers yet.</p>
+{% endfor %}
+{% endpartialdef %}
