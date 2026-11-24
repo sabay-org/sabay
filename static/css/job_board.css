@@ -139,8 +139,8 @@ a.board-card.is-selected {
 }
 .board-tag.status-accepted,
 .board-tag.status-completed {
-	background: #e3efe2;
-	color: #2f5d2c;
+    background: var(--status-accepted-background);
+    color: var(--status-accepted-color);
 }
 .board-tag.status-declined,
 .board-tag.status-cancelled,
@@ -149,8 +149,8 @@ a.board-card.is-selected {
 	color: var(--text-light);
 }
 .board-tag.status-requested {
-	background: #fbeccb;
-	color: #7a4f0e;
+    background: var(--status-requested-background);
+    color: var(--status-requested-color);
 }
 
 /* Detail panel */
@@ -248,6 +248,14 @@ a.board-card.is-selected {
 .board-seeker div span {
 	color: var(--text-light);
 	font-size: 0.9rem;
+}
+.board-message-button {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+}
+.board-message-button button {
+    margin: 0;
 }
 
 .board-actions {

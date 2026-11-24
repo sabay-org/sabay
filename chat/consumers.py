@@ -4,6 +4,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from chat.models import Message, Room, RoomMember
+from members.models import Provider, Seeker
 
 
 def room_message_transaction(func):
@@ -27,6 +28,8 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         self.user_group_name = None
         self.room_id = None
         self.room_group_name = None
+
+        self.room_role = None
 
         user = self.scope["user"]
 
@@ -110,8 +113,6 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             )
             return
 
-        message = await self.save_message(content["message"])
-
         if not await self.is_room_member(self.room_id):
             await self.unsubscribe_from_room()
             await self.send_json(
@@ -122,7 +123,8 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             )
             return
 
-        json_message = ser_message(message)
+        message = await self.save_message(content["message"])
+        json_message = await ser_message(message)
 
         # Send message to room group
         await self.channel_layer.group_send(
@@ -173,6 +175,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
 
         # Join new room
         self.room_id = room_id
+        self.room_role = await self.get_member_role(self.room_id)
         self.room_group_name = f"chat_{self.room_id}"
 
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
@@ -185,7 +188,8 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             {
                 "type": "chat.history",
                 "room_id": str(self.room_id),
-                "messages": [ser_message(m) for m in messages],
+                "room_role": str(self.room_role),
+                "messages": [await ser_message(m) for m in messages],
                 "read_at": read_at.isoformat() if read_at else None,
             }
         )
@@ -215,11 +219,10 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
 
     # Get read date
     async def get_read_at(self):
-        member = await RoomMember.objects.aget(
+        return await RoomMember.objects.values_list("read_at", flat=True).aget(
             user_id=self.user_id,
             room_id=self.room_id,
         )
-        return member.read_at
 
     # Save message to database
     @room_message_transaction
@@ -232,29 +235,65 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         )
 
     # Return true if user is a member of the room
-    @database_sync_to_async
-    def is_room_member(self, room_id):
-        return RoomMember.objects.filter(
+    async def is_room_member(self, room_id):
+        return await RoomMember.objects.filter(
             user_id=self.user_id,
             room_id=room_id,
-        ).exists()
+        ).aexists()
+
+    # Get member role
+    async def get_member_role(self, room_id):
+        return await RoomMember.objects.values_list("role", flat=True).aget(
+            room_id=room_id,
+            user=self.scope["user"],
+        )
 
     # Set read_at field in RoomMember table
-    @database_sync_to_async
-    def mark_room_read(self, room_id):
+    async def mark_room_read(self, room_id):
         if room_id is not None:
-            RoomMember.objects.filter(
+            await RoomMember.objects.filter(
                 user_id=self.user_id,
                 room_id=room_id,
-            ).update(read_at=timezone.now())
+            ).aupdate(read_at=timezone.now())
+
+
+# Get user profile picture
+async def get_profile_picture(user_id):
+    profile = await Seeker.objects.filter(user_id=user_id).afirst()
+
+    if profile is None:
+        profile = await Provider.objects.filter(user_id=user_id).afirst()
+
+    if not profile:
+        return None
+
+    picture = getattr(profile, "profilePicture", None) or getattr(
+        profile, "photo", None
+    )
+
+    return picture.url if picture else None
 
 
 # Serialize message
-def ser_message(m):
+async def ser_message(m):
+    # Grab the profile picture as well
+    picture = await get_profile_picture(m.user.id) if m.user else None
+
     return {
         "room_id": str(m.room_id),
         "user_id": str(m.user.id) if m.user else None,
+        "user": {
+            "username": m.user.username,
+            "first_name": m.user.first_name,
+            "last_name": m.user.last_name,
+            "picture": picture,
+        }
+        if m.user
+        else {
+            "username": None,
+            "first_name": None,
+            "last_name": None,
+        },
         "message": m.message,
-        "username": m.user.username if m.user else None,
         "created_at": m.created_at.isoformat(),
     }

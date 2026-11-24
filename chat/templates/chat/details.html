@@ -1,5 +1,37 @@
-{% load static %}
+<div id="profile-card"></div>
 
-<div class="profile-detail">
-  <p class="placeholder-text">profile detail of the person being texted</p>
-</div>
+<script>
+(() => {
+  const profileCard = document.querySelector("#profile-card");
+
+  async function updateProfileDetail(roomId, role) {
+    if (!roomId) {
+      profileCard.innerHTML = "";
+      return;
+    } else if (roomId !== window.currentRoom) {
+      return;
+    }
+
+    let fetchRole = "none"
+    if (role === "seeker" || role === "coordinator") {
+      fetchRole = "provider"
+    } else if (role === "provider") {
+      fetchRole = "seeker"
+    }
+
+    const response = await fetch(`/chat/${roomId}/profile-card/${fetchRole}`);
+
+    if (response.ok) {
+      profileCard.innerHTML = await response.text();
+    }
+  }
+
+  window.chatSocket.addEventListener("message", (e) => {
+    const data = JSON.parse(e.data);
+
+    if (data.type === "chat.history") {
+      updateProfileDetail(data.room_id, data.room_role);
+    }
+  });
+})();
+</script>
